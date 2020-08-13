@@ -77,13 +77,14 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.fieldbook.tracker.activities.ConfigActivity.dt;
+import android.os.Environment;
 
 /**
  * All main screen logic resides here
  */
 
 @SuppressLint("ClickableViewAccessibility")
-public class CollectActivity extends AppCompatActivity {
+public class TabletCollectActivity extends AppCompatActivity {
 
     public static boolean searchReload;
     public static String searchRange;
@@ -126,7 +127,7 @@ public class CollectActivity extends AppCompatActivity {
     public void setBarcodeTargetPlotID() { barcodeTarget = BarcodeTarget.PlotID; }
     private boolean isBarcodeTargetValue() { return barcodeTarget == BarcodeTarget.Value; }
     private boolean isBarcodeTargetPlotID() { return barcodeTarget == BarcodeTarget.PlotID; }
-    
+
     public final Handler myGuiHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -234,7 +235,7 @@ public class CollectActivity extends AppCompatActivity {
     }
 
     private void loadScreen() {
-        setContentView(R.layout.activity_collect);
+        setContentView(R.layout.tablet_activity_collect);
 
         initToolbars();
 
@@ -261,7 +262,6 @@ public class CollectActivity extends AppCompatActivity {
         traitBox = new TraitBox(this);
         rangeBox = new RangeBox(this);
         initCurrentVals();
-
     }
 
     private void refreshMain() {
@@ -275,7 +275,7 @@ public class CollectActivity extends AppCompatActivity {
     private void playSound(String sound) {
         try {
             int resID = getResources().getIdentifier(sound, "raw", getPackageName());
-            MediaPlayer chimePlayer = MediaPlayer.create(CollectActivity.this, resID);
+            MediaPlayer chimePlayer = MediaPlayer.create(TabletCollectActivity.this, resID);
             chimePlayer.start();
 
             chimePlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -345,7 +345,7 @@ public class CollectActivity extends AppCompatActivity {
         });
 
         deleteValue = toolbarBottom.findViewById(R.id.deleteValue);
-        deleteValue.setOnClickListener(new View.OnClickListener() {
+        deleteValue.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -465,7 +465,7 @@ public class CollectActivity extends AppCompatActivity {
         }
 
         if (!haveData) {
-Log.d("CollectActivity", "moveToSearch");
+Log.d("TabletCollectActivity", "moveToSearch");
             Utils.makeToast(getApplicationContext(), getString(R.string.main_toolbar_moveto_no_match));
         }
     }
@@ -487,8 +487,8 @@ Log.d("CollectActivity", "moveToSearch");
             dt.exportDatabase("backup");
             File exportedDb = new File(Constants.BACKUPPATH + "/" + "backup.db");
             File exportedSp = new File(Constants.BACKUPPATH + "/" + "backup.db_sharedpref.xml");
-            Utils.scanFile(CollectActivity.this, exportedDb);
-            Utils.scanFile(CollectActivity.this, exportedSp);
+            Utils.scanFile(TabletCollectActivity.this, exportedDb);
+            Utils.scanFile(TabletCollectActivity.this, exportedSp);
         } catch (Exception e) {
             Log.e(TAG, e.getMessage());
         }
@@ -639,7 +639,7 @@ Log.d("CollectActivity", "moveToSearch");
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        new MenuInflater(CollectActivity.this).inflate(R.menu.menu_main, menu);
+        new MenuInflater(TabletCollectActivity.this).inflate(R.menu.menu_main, menu);
 
         systemMenu = menu;
 
@@ -718,13 +718,13 @@ Log.d("CollectActivity", "moveToSearch");
                 sequence.start();
                 break;
             case R.id.search:
-                intent.setClassName(CollectActivity.this,
+                intent.setClassName(TabletCollectActivity.this,
                         SearchActivity.class.getName());
                 startActivity(intent);
                 break;
 
             case R.id.resources:
-                intent.setClassName(CollectActivity.this,
+                intent.setClassName(TabletCollectActivity.this,
                         FileExploreActivity.class.getName());
                 intent.putExtra("path", Constants.RESOURCEPATH);
                 intent.putExtra("exclude", new String[]{"fieldbook"});
@@ -748,7 +748,7 @@ Log.d("CollectActivity", "moveToSearch");
                 showSummary();
                 break;
             case R.id.datagrid:
-                intent.setClassName(CollectActivity.this,
+                intent.setClassName(TabletCollectActivity.this,
                         DatagridActivity.class.getName());
                 startActivityForResult(intent, 2);
                 break;
@@ -1075,7 +1075,7 @@ Log.d("CollectActivity", "moveToSearch");
     ///// class TraitBox /////
     // traitLeft, traitType, and traitRight
     private class TraitBox {
-        private CollectActivity parent;
+        private TabletCollectActivity parent;
         private String[] prefixTraits;
         private TraitObject currentTrait;
 
@@ -1086,7 +1086,7 @@ Log.d("CollectActivity", "moveToSearch");
 
         private Map newTraits;  // { trait name: value }
 
-        TraitBox(CollectActivity parent_) {
+        TraitBox(TabletCollectActivity parent_) {
             parent = parent_;
             prefixTraits = null;
             newTraits = new HashMap();
@@ -1361,7 +1361,7 @@ Log.d("CollectActivity", "moveToSearch");
     ///// class RangeBox /////
 
     class RangeBox {
-        private CollectActivity parent;
+        private TabletCollectActivity parent;
         private int[] rangeID;
         private int paging;
 
@@ -1384,7 +1384,7 @@ Log.d("CollectActivity", "moveToSearch");
         private int delay = 100;
         private int count = 1;
 
-        RangeBox(CollectActivity parent_) {
+        RangeBox(TabletCollectActivity parent_) {
             parent = parent_;
             rangeID = null;
             cRange = new RangeObject();
@@ -1626,7 +1626,7 @@ Log.d("CollectActivity", "moveToSearch");
 
                         try {
                             int resID = getResources().getIdentifier("plonk", "raw", getPackageName());
-                            MediaPlayer chimePlayer = MediaPlayer.create(CollectActivity.this, resID);
+                            MediaPlayer chimePlayer = MediaPlayer.create(TabletCollectActivity.this, resID);
                             chimePlayer.start();
 
                             chimePlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {

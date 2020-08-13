@@ -8,7 +8,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.fieldbook.tracker.activities.CollectActivity;
+import com.fieldbook.tracker.activities.TabletCollectActivity;
 import com.fieldbook.tracker.objects.RangeObject;
 import com.fieldbook.tracker.objects.TraitObject;
 
@@ -42,11 +42,11 @@ public abstract class BaseTraitLayout extends LinearLayout {
     public abstract void setNaTraitsText();
 
     public Map getNewTraits() {
-        return ((CollectActivity) getContext()).getNewTraits();
+        return ((TabletCollectActivity) getContext()).getNewTraits();
     }
 
     public TraitObject getCurrentTrait() {
-        return ((CollectActivity) getContext()).getCurrentTrait();
+        return ((TabletCollectActivity) getContext()).getCurrentTrait();
     }
 
     public SharedPreferences getPrefs() {
@@ -54,26 +54,26 @@ public abstract class BaseTraitLayout extends LinearLayout {
     }
 
     public RangeObject getCRange() {
-        return ((CollectActivity) getContext()).getCRange();
+        return ((TabletCollectActivity) getContext()).getCRange();
     }
 
     public EditText getEtCurVal() {
-        return ((CollectActivity) getContext()).getEtCurVal();
+        return ((TabletCollectActivity) getContext()).getEtCurVal();
     }
 
     public TextWatcher getCvText() {
-        return ((CollectActivity) getContext()).getCvText();
+        return ((TabletCollectActivity) getContext()).getCvText();
     }
 
     public String getDisplayColor() {
-        return ((CollectActivity) getContext()).getDisplayColor();
+        return ((TabletCollectActivity) getContext()).getDisplayColor();
     }
 
     public void updateTrait(String parent, String trait, String value) {
-        ((CollectActivity) getContext()).updateTrait(parent, trait, value);
+        ((TabletCollectActivity) getContext()).updateTrait(parent, trait, value);
     }
 
     public void removeTrait(String parent) {
-        ((CollectActivity) getContext()).removeTrait(parent);
+        ((TabletCollectActivity) getContext()).removeTrait(parent);
     }
 }

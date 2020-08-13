@@ -1,0 +1,6 @@
+"trait","format","defaultValue","minimum","maximum","details","categories","isVisible","realPosition","withBarcode"
+"果実重","numeric","","","","","","true","1","false"
+"外観","categorical","","","","","A/B/C","true","2","false"
+"果形","multicat","","","","","球/短球/長球/扁円/扁球/紡鐘/洋梨/ネック","true","3","false"
+"果実の硬軟","categorical","","","","","軟/ヤ軟/中/ヤ硬/硬","true","4","false"
+"果皮色","categorical","","","","","赤橙/淡赤橙/濃橙/橙/淡橙/黄橙/未着/未着 緑/みどり","true","5","false"

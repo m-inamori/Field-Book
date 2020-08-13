@@ -1068,7 +1068,8 @@ Log.d("ConfigActivity", "onCreate");
             Intent intent = new Intent();
 
             intent.setClassName(ConfigActivity.this,
-                    CollectActivity.class.getName());
+                                TabletCollectActivity.class.getName());
+            Log.d("ConfigActivity", TabletCollectActivity.class.getName());
             startActivity(intent);
         } else {
             // Do not have permissions, request them now
@@ -1189,7 +1190,7 @@ Log.d("ConfigActivity", "onCreate");
                 }
 
                 try {
-                    CollectActivity.thisActivity.finish();
+                    TabletCollectActivity.thisActivity.finish();
                 } catch (Exception e) {
                     Log.e("Field Book", "" + e.getMessage());
                 }
@@ -1576,7 +1577,7 @@ Log.d("ConfigActivity", "onCreate");
             SharedPreferences.Editor editor = prefs.edit();
             editor.apply();
 
-            CollectActivity.reloadData = true;
+            TabletCollectActivity.reloadData = true;
         }
     }
 }
