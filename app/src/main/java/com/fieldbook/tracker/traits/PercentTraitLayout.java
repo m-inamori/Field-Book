@@ -46,8 +46,8 @@ public class PercentTraitLayout extends BaseTraitLayout {
         seekListener = new SeekBar.OnSeekBarChangeListener() {
 
             public void onProgressChanged(SeekBar sb, int progress, boolean arg2) {
-                if (sb.getProgress() < Integer.parseInt(getCurrentTrait().getMinimum()))
-                    sb.setProgress(Integer.parseInt(getCurrentTrait().getMinimum()));
+                if (sb.getProgress() < Integer.parseInt(traitObject.getMinimum()))
+                    sb.setProgress(Integer.parseInt(traitObject.getMinimum()));
 
                 setCurrentValueText(sb.getProgress(), Color.parseColor(getDisplayColor()));
             }
@@ -56,7 +56,7 @@ public class PercentTraitLayout extends BaseTraitLayout {
             }
 
             public void onStopTrackingTouch(SeekBar arg0) {
-                updateTrait(getCurrentTrait().getTrait(), "percent", String.valueOf(seekBar.getProgress()));
+                updateTrait(traitObject.getTrait(), "percent", String.valueOf(seekBar.getProgress()));
             }
         };
 
@@ -65,14 +65,17 @@ public class PercentTraitLayout extends BaseTraitLayout {
 
     public void loadLayout() {
 
+        // あとで復活させる
+        /*
         getEtCurVal().setHint("");
         getEtCurVal().setVisibility(EditText.VISIBLE);
         getEtCurVal().removeTextChangedListener(getCvText());
+         */
 
-        if (getNewTraits().containsKey(getCurrentTrait().getTrait())
-                && !getNewTraits().get(getCurrentTrait().getTrait()).toString().equals("NA")) {
-            String currentValue = getNewTraits().get(getCurrentTrait().getTrait()).toString();
-            seekBar.setMax(Integer.parseInt(getCurrentTrait().getMaximum()));
+        if (getNewTraits().containsKey(traitObject.getTrait())
+                && !getNewTraits().get(traitObject.getTrait()).toString().equals("NA")) {
+            String currentValue = getNewTraits().get(traitObject.getTrait()).toString();
+            seekBar.setMax(Integer.parseInt(traitObject.getMaximum()));
 
             int textColor = currentValue.equals(getDefaultValue()) ? Color.BLACK : Color.parseColor(getDisplayColor());
             setCurrentValueText(currentValue, textColor);
@@ -81,20 +84,20 @@ public class PercentTraitLayout extends BaseTraitLayout {
             seekBar.setProgress(Integer.parseInt(currentValue));
             seekBar.setOnSeekBarChangeListener(seekListener);
 
-        } else if (getNewTraits().containsKey(getCurrentTrait().getTrait())
-                && getNewTraits().get(getCurrentTrait().getTrait()).toString().equals("NA")) {
+        } else if (getNewTraits().containsKey(traitObject.getTrait())
+                && getNewTraits().get(traitObject.getTrait()).toString().equals("NA")) {
             getEtCurVal().setText("NA");
             getEtCurVal().setTextColor(Color.parseColor(getDisplayColor()));
             seekBar.setProgress(0);
         } else {
             String loadValue = "";
-            if (getCurrentTrait().getDefaultValue() != null
-                    && !getCurrentTrait().getDefaultValue().isEmpty()) {
+            if (traitObject.getDefaultValue() != null
+                    && !traitObject.getDefaultValue().isEmpty()) {
                 loadValue = getDefaultValue();
             }
 
             setCurrentValueText(loadValue, Color.BLACK);
-            seekBar.setMax(Integer.parseInt(getCurrentTrait().getMaximum()));
+            seekBar.setMax(Integer.parseInt(traitObject.getMaximum()));
             seekBar.setOnSeekBarChangeListener(null);
             seekBar.setProgress(Integer.parseInt(getDefaultValue()));
             seekBar.setOnSeekBarChangeListener(seekListener);
@@ -103,9 +106,9 @@ public class PercentTraitLayout extends BaseTraitLayout {
 
     private String getDefaultValue() {
         String defaultValue = "0";
-        if (getCurrentTrait().getDefaultValue() != null
-                && !getCurrentTrait().getDefaultValue().isEmpty()) {
-            defaultValue = getCurrentTrait().getDefaultValue();
+        if (traitObject.getDefaultValue() != null
+                && !traitObject.getDefaultValue().isEmpty()) {
+            defaultValue = traitObject.getDefaultValue();
         }
         return defaultValue;
     }
@@ -124,7 +127,7 @@ public class PercentTraitLayout extends BaseTraitLayout {
 
     @Override
     public void deleteTraitListener() {
-        removeTrait(getCurrentTrait().getTrait());
+        removeTrait(traitObject);
         setCurrentValueText("", Color.BLACK);
         seekBar.setOnSeekBarChangeListener(null);
         seekBar.setProgress(Integer.parseInt(getDefaultValue()));

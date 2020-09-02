@@ -46,7 +46,7 @@ public class TraitWithBarcodeLayout extends BaseTraitLayout {
         // Get Barcode
         getBarcode.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-				((CollectActivity)thisActivity).setBarcodeTargetValue();
+                ((CollectActivity)thisActivity).setBarcodeTargetValue();
                 IntentIntegrator integrator = new IntentIntegrator(thisActivity);
                 integrator.initiateScan();
             }
@@ -58,16 +58,16 @@ public class TraitWithBarcodeLayout extends BaseTraitLayout {
 
         getEtCurVal().setVisibility(EditText.VISIBLE);
 
-        if (getNewTraits().containsKey(getCurrentTrait().getTrait())) {
-            getEtCurVal().setText(getNewTraits().get(getCurrentTrait().getTrait()).toString());
+        if (getNewTraits().containsKey(traitObject.getTrait())) {
+            getEtCurVal().setText(getNewTraits().get(traitObject.getTrait()).toString());
             getEtCurVal().setTextColor(Color.parseColor(getDisplayColor()));
         } else {
             getEtCurVal().setText("");
             getEtCurVal().setTextColor(Color.BLACK);
 
-            if (getCurrentTrait().getDefaultValue() != null
-                    && getCurrentTrait().getDefaultValue().length() > 0)
-                getEtCurVal().setText(getCurrentTrait().getDefaultValue());
+            if (traitObject.getDefaultValue() != null
+                    && traitObject.getDefaultValue().length() > 0)
+                getEtCurVal().setText(traitObject.getDefaultValue());
         }
     }
 

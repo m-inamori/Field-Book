@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static java.lang.Math.min;
+
 public class CategoricalTraitLayout extends BaseTraitLayout {
 
     private List<Button> buttonArray;
@@ -69,10 +71,10 @@ public class CategoricalTraitLayout extends BaseTraitLayout {
             // Functions to clear all other color except this button's
             btn.setOnClickListener(new OnClickListener() {
                 public void onClick(View arg0) {
-                    if (checkButton(btn, getNewTraits(), getCurrentTrait())) {
+                    if (checkButton(btn, getNewTraits(), traitObject)) {
                         return;
                     }
-                    updateTrait(getCurrentTrait().getTrait(), getCurrentTrait().getFormat(), btn.getText().toString());
+                    updateTrait(traitObject.getTrait(), traitObject.getFormat(), btn.getText().toString());
                     setCategoricalButtons(btn);
                 }
 
@@ -114,36 +116,37 @@ public class CategoricalTraitLayout extends BaseTraitLayout {
 
         String lastQualitative = "";
 
-        if (getNewTraits().containsKey(getCurrentTrait().getTrait())) {
-            lastQualitative = getNewTraits().get(getCurrentTrait().getTrait())
-                    .toString();
+        if (getNewTraits().containsKey(traitObject.getTrait())) {
+            lastQualitative = getNewTraits().get(traitObject.getTrait()).toString();
         }
 
-        String[] cat = getCurrentTrait().getCategories().split("/");
+        String[] cat = traitObject.getCategories().split("/");
+
+        for(Button button : buttonArray) {
+            button.setTextSize(20);
+            button.setMinWidth(100);
+            button.setMinimumWidth(100);
+        }
 
         // Hide unused buttons
-        for (int i = cat.length; i < 12; i++) {
+        for (int i = cat.length; i < buttonArray.size(); i++) {
             buttonArray.get(i).setVisibility(Button.GONE);
         }
 
         // Reset button visibility for items in the last row
-        if (12 - cat.length > 0) {
-            for (int i = 11; i >= cat.length; i--) {
-                buttonArray.get(i).setVisibility(Button.INVISIBLE);
-            }
+        for (int i = buttonArray.size() - 1; i >= cat.length; i--) {
+            buttonArray.get(i).setVisibility(Button.INVISIBLE);
         }
 
         // Set the color and visibility for the right buttons
-        for (int i = 0; i < cat.length; i++) {
+        for (int i = 0; i < min(cat.length, buttonArray.size()); i++) {
+            buttonArray.get(i).setVisibility(Button.VISIBLE);
+            buttonArray.get(i).setText(cat[i]);
             if (cat[i].equals(lastQualitative)) {
-                buttonArray.get(i).setVisibility(Button.VISIBLE);
-                buttonArray.get(i).setText(cat[i]);
                 buttonArray.get(i).setTextColor(Color.parseColor(getDisplayColor()));
                 buttonArray.get(i).setBackgroundColor(getResources().getColor(R.color.button_pressed));
             } else {
                 //TODO debug number of buttons, maybe add validation when creating categorical trait
-                buttonArray.get(i).setVisibility(Button.VISIBLE);
-                buttonArray.get(i).setText(cat[i]);
                 buttonArray.get(i).setTextColor(Color.BLACK);
                 buttonArray.get(i).setBackgroundColor(getResources().getColor(R.color.button_normal));
             }
@@ -152,8 +155,8 @@ public class CategoricalTraitLayout extends BaseTraitLayout {
 
     @Override
     public void deleteTraitListener() {
-        getNewTraits().remove(getCurrentTrait().getTrait());
-        ConfigActivity.dt.deleteTrait(getCRange().plot_id, getCurrentTrait().getTrait());
+        getNewTraits().remove(traitObject.getTrait());
+        ConfigActivity.dt.deleteTrait(getCRange().plot_id, traitObject.getTrait());
         setCategoricalButtons(null);
     }
 }

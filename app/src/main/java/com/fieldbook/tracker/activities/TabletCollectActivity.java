@@ -42,6 +42,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -71,12 +72,15 @@ import com.google.zxing.integration.android.IntentResult;
 import org.threeten.bp.OffsetDateTime;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import static com.fieldbook.tracker.activities.ConfigActivity.dt;
+import static java.lang.Math.min;
+
 import android.os.Environment;
 
 /**
@@ -99,22 +103,21 @@ public class TabletCollectActivity extends AppCompatActivity {
     /**
      * Trait layouts
      */
-    LayoutCollections traitLayouts;
+    ArrayList<LayoutCollections> traitLayoutTable = new ArrayList<LayoutCollections>();
     private SharedPreferences ep;
     private String inputPlotId = "";
     private AlertDialog goToId;
     private Object lock;
+    private Map newTraits = new HashMap();  // { trait name: value }
+    private LayoutCollections currentLayout;
+    private TraitObject currentTrait;
+    private String[] prefixTraits;
     /**
      * Main screen elements
      */
     private Menu systemMenu;
     private InfoBarAdapter infoBarAdapter;
-    private TraitBox traitBox;
     private RangeBox rangeBox;
-    /**
-     * Trait-related elements
-     */
-    private EditText etCurVal;
 
     /**
      * we have to distinguish from where we are using barcode
@@ -153,7 +156,6 @@ public class TabletCollectActivity extends AppCompatActivity {
         }
     };
 
-    private TextWatcher cvText;
     private InputMethodManager imm;
     private Boolean dataLocked = false;
 
@@ -195,43 +197,10 @@ public class TabletCollectActivity extends AppCompatActivity {
     }
 
     private void initCurrentVals() {
-        // Current value display
-        etCurVal = findViewById(R.id.etCurVal);
-
-        etCurVal.setOnEditorActionListener(new OnEditorActionListener() {
-            public boolean onEditorAction(TextView exampleView, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
-                    rangeBox.rightClick();
-                    return true;
-                }
-
-                return false;
-            }
-        });
-
         // Validates the text entered for text format
-        cvText = new TextWatcher() {
-            public void afterTextChanged(Editable en) {
-                final TraitObject trait = traitBox.getCurrentTrait();
-                if (en.toString().length() > 0) {
-                    if (traitBox.existsNewTraits() & trait != null)
-                        updateTrait(trait.getTrait(), trait.getFormat(), en.toString());
-                } else {
-                    if (traitBox.existsNewTraits() & trait != null)
-                        removeTrait(trait.getTrait());
-                }
-                //tNum.setSelection(tNum.getText().length());
-            }
-
-            public void beforeTextChanged(CharSequence arg0, int arg1,
-                                          int arg2, int arg3) {
-            }
-
-            public void onTextChanged(CharSequence arg0, int arg1, int arg2,
-                                      int arg3) {
-            }
-
-        };
+        for (LayoutCollections layout : traitLayoutTable) {
+            layout.initCurrentVals();
+        }
     }
 
     private void loadScreen() {
@@ -258,8 +227,30 @@ public class TabletCollectActivity extends AppCompatActivity {
 
         infoBarAdapter = new InfoBarAdapter(this, ep.getInt(GeneralKeys.INFOBAR_NUMBER, 2), (RecyclerView) findViewById(R.id.selectorList));
 
-        traitLayouts = new LayoutCollections(this);
-        traitBox = new TraitBox(this);
+        // prepare TraitLayout in the cells of the TableLayout
+        int[] holderIDs = {
+                R.id.traitHolder1, R.id.traitHolder2, R.id.traitHolder3,
+                R.id.traitHolder4, R.id.traitHolder5, R.id.traitHolder6
+        };
+        String[] traits = dt.getVisibleTrait();
+        for (int i = 0; i < min(holderIDs.length, traits.length); ++i) {
+            LinearLayout layout = findViewById(holderIDs[i]);
+            LayoutCollections collection = new LayoutCollections(this, layout);
+            traitLayoutTable.add(collection);
+        }
+        // set TraitObject into TraitLayout
+        for (int i = 0; i < traitLayoutTable.size(); ++i) {
+            if (i == traits.length)
+                break;
+            TraitObject tobj = dt.getDetail(traits[i]);
+            traitLayoutTable.get(i).setTraitObject(tobj);
+        }
+        // hide residual layout
+        for (int i = traitLayoutTable.size(); i < holderIDs.length; ++i) {
+            LinearLayout layout = findViewById(holderIDs[i]);
+            layout.setVisibility(View.INVISIBLE);
+        }
+
         rangeBox = new RangeBox(this);
         initCurrentVals();
     }
@@ -267,12 +258,12 @@ public class TabletCollectActivity extends AppCompatActivity {
     private void refreshMain() {
         rangeBox.saveLastPlot();
         rangeBox.refresh();
-        traitBox.setNewTraits(rangeBox.getPlotID());
+        setNewTraits(rangeBox.getPlotID());
 
         initWidgets(true);
     }
 
-    private void playSound(String sound) {
+    public void playSound(String sound) {
         try {
             int resID = getResources().getIdentifier(sound, "raw", getPackageName());
             MediaPlayer chimePlayer = MediaPlayer.create(TabletCollectActivity.this, resID);
@@ -287,45 +278,14 @@ public class TabletCollectActivity extends AppCompatActivity {
         }
     }
 
-    private boolean validateData() {
-        final String strValue = etCurVal.getText().toString();
-        final TraitObject currentTrait = traitBox.getCurrentTrait();
-        final String trait = currentTrait.getTrait();
-
-        if (traitBox.existsNewTraits()
-                && traitBox.getCurrentTrait() != null
-                && etCurVal.getText().toString().length() > 0
-                && !traitBox.getCurrentTrait().isValidValue(etCurVal.getText().toString())) {
-
-            if (strValue.length() > 0 && currentTrait.isOver(strValue)) {
-                Utils.makeToast(getApplicationContext(),getString(R.string.trait_error_maximum_value)
-                        + ": " + currentTrait.getMaximum());
-            } else if (strValue.length() > 0 && currentTrait.isUnder(strValue)) {
-                Utils.makeToast(getApplicationContext(),getString(R.string.trait_error_minimum_value)
-                        + ": " + currentTrait.getMinimum());
-            }
-
-            removeTrait(trait);
-            etCurVal.getText().clear();
-
-            playSound("error");
-
-            return false;
-        }
-
-        return true;
-    }
-
     private void setNaText() {
-        etCurVal.setText("NA");
-
-        traitLayouts.setNaTraitsText(traitBox.getCurrentFormat());
+        for(LayoutCollections traitLayouts : traitLayoutTable)
+            traitLayouts.setNaTraitsText();
     }
 
     private void setNaTextBrapiEmptyField() {
-        etCurVal.setHint("NA");
-
-        traitLayouts.setNaTraitsText(traitBox.getCurrentFormat());
+        for(LayoutCollections traitLayouts : traitLayoutTable)
+            traitLayouts.setNaTraitsText();
     }
 
     private void initToolbars() {
@@ -338,9 +298,11 @@ public class TabletCollectActivity extends AppCompatActivity {
         missingValue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TraitObject currentTrait = traitBox.getCurrentTrait();
-                updateTrait(currentTrait.getTrait(), currentTrait.getFormat(), "NA");
-                setNaText();
+                for(LayoutCollections layouts : traitLayoutTable) {
+                    TraitObject currentTrait = layouts.getTraitObject();
+                    updateTrait(currentTrait.getTrait(), currentTrait.getFormat(), "NA");
+                    layouts.setNaTraitsText();
+                }
             }
         });
 
@@ -350,18 +312,19 @@ public class TabletCollectActivity extends AppCompatActivity {
             public void onClick(View v) {
 
                 // if a brapi observation that has been synced, don't allow deleting
-                TraitObject currentTrait = traitBox.getCurrentTrait();
                 if (dt.isBrapiSynced(rangeBox.getPlotID(), currentTrait.getTrait())) {
                     if (currentTrait.getFormat().equals("photo")) {
                         // I want to use abstract method
-                        Map newTraits = traitBox.getNewTraits();
-                        PhotoTraitLayout traitPhoto = traitLayouts.getPhotoTrait();
-                        traitPhoto.brapiDelete(newTraits);
+                        for(LayoutCollections traitLayouts : traitLayoutTable) {
+                            PhotoTraitLayout traitPhoto = traitLayouts.getPhotoTrait();
+                            traitPhoto.brapiDelete(newTraits);
+                        }
                     } else {
                         brapiDelete(currentTrait.getTrait(), false);
                     }
                 } else {
-                    traitLayouts.deleteTraitListener(currentTrait.getFormat());
+                    for(int i = 0; i < traitLayoutTable.size(); ++i)
+                        traitLayoutTable.get(i).deleteTraitListener(currentTrait.getFormat());
                 }
             }
         });
@@ -373,7 +336,7 @@ public class TabletCollectActivity extends AppCompatActivity {
         if (rangeBox.getRangeID() == null)
             return;
 
-        traitBox.setNewTraits(rangeBox.getPlotID());
+        setNewTraits(rangeBox.getPlotID());
 
         initWidgets(true);
     }
@@ -389,17 +352,9 @@ public class TabletCollectActivity extends AppCompatActivity {
             infoBarAdapter.configureDropdownArray(plotID);
         }
 
-        traitBox.initTraitDetails();
-
-        // trait is unique, format is not
         String[] traits = dt.getVisibleTrait();
-        if (traits != null) {
-            ArrayAdapter<String> directionArrayAdapter = new ArrayAdapter<>(
-                    this, R.layout.custom_spinnerlayout, traits);
-            directionArrayAdapter
-                    .setDropDownViewResource(R.layout.custom_spinnerlayout);
-            traitBox.initTraitType(directionArrayAdapter, rangeSuppress);
-
+        for (int i = 0; i < traitLayoutTable.size(); ++i) {
+            traitLayoutTable.get(i).setTrait(traits[i]);
         }
     }
 
@@ -465,7 +420,6 @@ public class TabletCollectActivity extends AppCompatActivity {
         }
 
         if (!haveData) {
-Log.d("TabletCollectActivity", "moveToSearch");
             Utils.makeToast(getApplicationContext(), getString(R.string.main_toolbar_moveto_no_match));
         }
     }
@@ -475,7 +429,7 @@ Log.d("TabletCollectActivity", "moveToSearch");
 
         // Reload traits based on selected plot
         rangeBox.display();
-        traitBox.setNewTraits(rangeBox.getPlotID());
+        setNewTraits(rangeBox.getPlotID());
 
         initWidgets(false);
     }
@@ -534,10 +488,9 @@ Log.d("TabletCollectActivity", "moveToSearch");
             // displayRange moved to RangeBox#display
             // and display in RangeBox#reload is commented out
             rangeBox.reload();
-            traitBox.setPrefixTraits();
+            setPrefixTraits();
 
             initWidgets(false);
-            traitBox.setSelection(0);
 
             // try to go to last saved plot
             if (ep.getString("lastplot", null) != null) {
@@ -549,7 +502,7 @@ Log.d("TabletCollectActivity", "moveToSearch");
         } else if (partialReload) {
             partialReload = false;
             rangeBox.display();
-            traitBox.setPrefixTraits();
+            setPrefixTraits();
             initWidgets(false);
 
         } else if (searchReload) {
@@ -574,7 +527,6 @@ Log.d("TabletCollectActivity", "moveToSearch");
         }
 
         Log.w(parent, value);
-        traitBox.update(parent, value);
 
         Observation observation = dt.getObservation(rangeBox.getPlotID(), parent);
         String observationDbId = observation.getDbId();
@@ -593,8 +545,7 @@ Log.d("TabletCollectActivity", "moveToSearch");
 
     private void brapiDelete(String parent, Boolean hint) {
         Toast.makeText(getApplicationContext(), getString(R.string.brapi_delete_message), Toast.LENGTH_LONG).show();
-        TraitObject trait = traitBox.getCurrentTrait();
-        updateTrait(parent, trait.getFormat(), getString(R.string.brapi_na));
+        updateTrait(parent, currentTrait.getFormat(), getString(R.string.brapi_na));
         if (hint) {
             setNaTextBrapiEmptyField();
         } else {
@@ -603,25 +554,31 @@ Log.d("TabletCollectActivity", "moveToSearch");
     }
 
     // Delete trait, including from database
-    public void removeTrait(String parent) {
+    public void removeTrait(TraitObject traitObject) {
         if (rangeBox.isEmpty()) {
             return;
         }
 
-        TraitObject trait = traitBox.getCurrentTrait();
-        if (dt.isBrapiSynced(rangeBox.getPlotID(), trait.getTrait())) {
-            brapiDelete(parent, true);
+        if (dt.isBrapiSynced(rangeBox.getPlotID(), traitObject.getTrait())) {
+            brapiDelete(traitObject.getTrait(), true);
         } else {
             // Always remove existing trait before inserting again
             // Based on plot_id, prevent duplicate
-            traitBox.remove(parent, rangeBox.getPlotID());
+            remove(traitObject.getTrait(), rangeBox.getPlotID());
         }
     }
 
     // for format without specific control
     public void removeTrait() {
-        traitBox.remove(traitBox.getCurrentTrait(), rangeBox.getPlotID());
-        etCurVal.setText("");
+        remove(currentTrait, rangeBox.getPlotID());
+        setText("");
+    }
+
+    private void setText(final String string_value) {
+        BaseTraitLayout layout= currentLayout.getCurrentLayout();
+        EditText etCurVal = layout.getEtCurVal();
+        if (etCurVal != null)
+            etCurVal.setText(string_value);
     }
 
     private void customizeToolbarIcons() {
@@ -694,11 +651,8 @@ Log.d("TabletCollectActivity", "moveToSearch");
             case R.id.help:
                 TapTargetSequence sequence = new TapTargetSequence(this)
                         .targets(collectDataTapTargetView(R.id.selectorList, getString(R.string.tutorial_main_infobars_title), getString(R.string.tutorial_main_infobars_description), R.color.main_primaryDark,200),
-                                collectDataTapTargetView(R.id.traitLeft, getString(R.string.tutorial_main_traits_title), getString(R.string.tutorial_main_traits_description), R.color.main_primaryDark,60),
-                                collectDataTapTargetView(R.id.traitType, getString(R.string.tutorial_main_traitlist_title), getString(R.string.tutorial_main_traitlist_description), R.color.main_primaryDark,80),
                                 collectDataTapTargetView(R.id.rangeLeft, getString(R.string.tutorial_main_entries_title), getString(R.string.tutorial_main_entries_description), R.color.main_primaryDark,60),
                                 collectDataTapTargetView(R.id.valuesPlotRangeHolder, getString(R.string.tutorial_main_navinfo_title), getString(R.string.tutorial_main_navinfo_description), R.color.main_primaryDark,60),
-                                collectDataTapTargetView(R.id.traitHolder, getString(R.string.tutorial_main_datacollect_title), getString(R.string.tutorial_main_datacollect_description), R.color.main_primaryDark,200),
                                 collectDataTapTargetView(R.id.missingValue, getString(R.string.tutorial_main_na_title), getString(R.string.tutorial_main_na_description), R.color.main_primary,60),
                                 collectDataTapTargetView(R.id.deleteValue, getString(R.string.tutorial_main_delete_title), getString(R.string.tutorial_main_delete_description), R.color.main_primary,60)
                         );
@@ -768,13 +722,15 @@ Log.d("TabletCollectActivity", "moveToSearch");
             systemMenu.findItem(R.id.lockData).setIcon(R.drawable.ic_tb_lock);
             missingValue.setEnabled(false);
             deleteValue.setEnabled(false);
-            etCurVal.setEnabled(false);
-            traitLayouts.disableViews();
+            // etCurVal.setEnabled(false);
+            for(int i = 0; i < traitLayoutTable.size(); ++i)
+                traitLayoutTable.get(i).disableViews();
         } else {
             systemMenu.findItem(R.id.lockData).setIcon(R.drawable.ic_tb_unlock);
             missingValue.setEnabled(true);
             deleteValue.setEnabled(true);
-            traitLayouts.enableViews();
+            for(int i = 0; i < traitLayoutTable.size(); ++i)
+                traitLayoutTable.get(i).enableViews();
         }
     }
 
@@ -828,7 +784,7 @@ Log.d("TabletCollectActivity", "moveToSearch");
             rangeBox.setRange(id);
             rangeBox.display();
             rangeBox.setLastRange();
-            traitBox.setNewTraits(rangeBox.getPlotID());
+            setNewTraits(rangeBox.getPlotID());
             initWidgets(true);
         } catch (Exception e) {
 
@@ -839,7 +795,7 @@ Log.d("TabletCollectActivity", "moveToSearch");
         LayoutInflater inflater = this.getLayoutInflater();
         View layout = inflater.inflate(R.layout.dialog_summary, null);
         TextView summaryText = layout.findViewById(R.id.field_name);
-        summaryText.setText(traitBox.createSummaryText(rangeBox.getPlotID()));
+        summaryText.setText(createSummaryText(rangeBox.getPlotID()));
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppAlertDialog);
         builder.setTitle(R.string.preferences_appearance_toolbar_customize_summary)
@@ -895,7 +851,8 @@ Log.d("TabletCollectActivity", "moveToSearch");
 
                 if (return_action.equals("1")) {
                     if (action == KeyEvent.ACTION_UP) {
-                        traitBox.moveTrait("right");
+                        // あとから実装する
+                        // moveTrait("right");
                         return true;
                     }
                 }
@@ -938,9 +895,11 @@ Log.d("TabletCollectActivity", "moveToSearch");
                 break;
             case 252:
                 if (resultCode == RESULT_OK) {
-                    PhotoTraitLayout traitPhoto = traitLayouts.getPhotoTrait();
-                    traitPhoto.makeImage(traitBox.getCurrentTrait(),
-                            traitBox.getNewTraits());
+                    for(int i = 0; i < traitLayoutTable.size(); ++i) {
+                        LayoutCollections traitLayouts = traitLayoutTable.get(i);
+                        PhotoTraitLayout traitPhoto = traitLayouts.getPhotoTrait();
+                        traitPhoto.makeImage(currentTrait, newTraits);
+                    }
                 }
                 break;
         }
@@ -957,10 +916,10 @@ Log.d("TabletCollectActivity", "moveToSearch");
             moveToSearch("id", rangeID, null, null, inputPlotId);
         }
         else if (isBarcodeTargetValue()) {
-            final TraitObject trait = traitBox.getCurrentTrait();
+            final TraitObject trait = currentTrait;
             final String value = result.getContents();
             if (trait.isValidValue(value)) {
-                etCurVal.setText(value);
+                setText(value);
             }
             else {
                 String message = String.format("%s is invalid data.", value);
@@ -999,27 +958,6 @@ Log.d("TabletCollectActivity", "moveToSearch");
 
     }
 
-    public TraitBox getTraitBox() {
-        return traitBox;
-    }
-
-    public boolean existsTrait(final int ID) {
-        final TraitObject trait = traitBox.getCurrentTrait();
-        return dt.getTraitExists(ID, trait.getTrait(), trait.getFormat());
-    }
-
-    public Map getNewTraits() {
-        return traitBox.getNewTraits();
-    }
-
-    public void setNewTraits(Map newTraits) {
-        traitBox.setNewTraits(newTraits);
-    }
-
-    public TraitObject getCurrentTrait() {
-        return traitBox.getCurrentTrait();
-    }
-
     public RangeBox getRangeBox() {
         return rangeBox;
     }
@@ -1028,28 +966,12 @@ Log.d("TabletCollectActivity", "moveToSearch");
         return rangeBox.getCRange();
     }
 
-    public EditText getEtCurVal() {
-        return etCurVal;
-    }
-
-    public TextWatcher getCvText() {
-        return cvText;
-    }
-
     public String getDisplayColor() {
         return displayColor;
     }
 
     public ImageButton getDeleteValue() {
         return deleteValue;
-    }
-
-    public ImageView getTraitLeft() {
-        return traitBox.getTraitLeft();
-    }
-
-    public ImageView getTraitRight() {
-        return traitBox.getTraitRight();
     }
 
     public ImageView getRangeLeft() {
@@ -1072,295 +994,70 @@ Log.d("TabletCollectActivity", "moveToSearch");
         return ep.getBoolean(GeneralKeys.CYCLING_TRAITS_ADVANCES, false);
     }
 
-    ///// class TraitBox /////
-    // traitLeft, traitType, and traitRight
-    private class TraitBox {
-        private TabletCollectActivity parent;
-        private String[] prefixTraits;
-        private TraitObject currentTrait;
+    public boolean existsTrait(final int ID) {
+        return dt.getTraitExists(ID, currentTrait.getTrait(), currentTrait.getFormat());
+    }
 
-        private Spinner traitType;
-        private TextView traitDetails;
-        private ImageView traitLeft;
-        private ImageView traitRight;
+    boolean existsTrait() {
+        return newTraits.containsKey(currentTrait.getTrait());
+    }
 
-        private Map newTraits;  // { trait name: value }
+    public Map getNewTraits() { return newTraits; }
 
-        TraitBox(TabletCollectActivity parent_) {
-            parent = parent_;
-            prefixTraits = null;
-            newTraits = new HashMap();
+    void setNewTraits(final String plotID) {
+        newTraits = (HashMap) dt.getUserDetail(plotID).clone();
+    }
 
-            traitType = findViewById(R.id.traitType);
-            traitLeft = findViewById(R.id.traitLeft);
-            traitRight = findViewById(R.id.traitRight);
-            traitDetails = findViewById(R.id.traitDetails);
+    void setPrefixTraits() {
+        prefixTraits = dt.getRangeColumnNames();
+    }
 
-            traitLeft.setOnTouchListener(createTraitOnTouchListener(traitLeft, R.drawable.main_trait_left_arrow_unpressed,
-                    R.drawable.main_trait_left_arrow_pressed));
+    public boolean existsNewTraits() { return newTraits != null; }
 
-            // Go to previous trait
-            traitLeft.setOnClickListener(new OnClickListener() {
+    public void remove(String traitName, String plotID) {
+        if (newTraits.containsKey(traitName))
+            newTraits.remove(traitName);
+        dt.deleteTrait(plotID, traitName);
+    }
 
-                public void onClick(View arg0) {
-                    moveTrait("left");
-                }
-            });
+    public void remove(TraitObject trait, String plotID) {
+        remove(trait.getTrait(), plotID);
+    }
 
-            traitRight.setOnTouchListener(createTraitOnTouchListener(traitRight, R.drawable.main_trait_right_unpressed,
-                    R.drawable.main_trait_right_pressed));
+    final String createSummaryText(final String plotID) {
+        String[] traitList = dt.getAllTraits();
+        StringBuilder data = new StringBuilder();
 
-            // Go to next trait
-            traitRight.setOnClickListener(new OnClickListener() {
-
-                public void onClick(View arg0) {
-                    moveTrait("right");
-                }
-            });
-        }
-
-        void initTraitDetails() {
-            if (prefixTraits != null) {
-                final TextView traitDetails = findViewById(R.id.traitDetails);
-
-                traitDetails.setOnTouchListener(new OnTouchListener() {
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        switch (event.getAction()) {
-                            case MotionEvent.ACTION_DOWN:
-                                traitDetails.setMaxLines(10);
-                                break;
-                            case MotionEvent.ACTION_UP:
-                                traitDetails.setMaxLines(1);
-                                break;
-                        }
-                        return true;
-                    }
-                });
+        //TODO this test crashes app
+        if (rangeBox.getCRange() != null) {
+            for (String s : prefixTraits) {
+                data.append(s).append(": ");
+                data.append(dt.getDropDownRange(s, plotID)[0]).append("\n");
             }
         }
 
-        void initTraitType(ArrayAdapter<String> adaptor,
-                           final boolean rangeSuppress) {
-            final int traitPosition = getSelectedItemPosition();
-            traitType.setAdapter(adaptor);
-
-            traitType.setOnItemSelectedListener(new OnItemSelectedListener() {
-
-                public void onItemSelected(AdapterView<?> arg0, View arg1,
-                                           int arg2, long arg3) {
-
-                    // This updates the in memory hashmap from database
-                    currentTrait = dt.getDetail(traitType.getSelectedItem()
-                            .toString());
-
-                    etCurVal = parent.getEtCurVal();
-                    parent.setIMM();
-                    InputMethodManager imm = parent.getIMM();
-                    if (!currentTrait.getFormat().equals("text")) {
-                        try {
-                            imm.hideSoftInputFromWindow(etCurVal.getWindowToken(), 0);
-                        } catch (Exception ignore) {
-                        }
-                    }
-
-                    traitDetails.setText(currentTrait.getDetails());
-
-                    if (!rangeSuppress | !currentTrait.getFormat().equals("numeric")) {
-                        if (etCurVal.getVisibility() == TextView.VISIBLE) {
-                            etCurVal.setVisibility(EditText.GONE);
-                            etCurVal.setEnabled(false);
-                        }
-                    }
-
-                    //Clear all layouts
-                    traitLayouts.hideLayouts();
-
-                    //Get current layout object and make it visible
-                    BaseTraitLayout currentTraitLayout = getTraitLayout(currentTrait);
-                    currentTraitLayout.setVisibility(View.VISIBLE);
-
-                    //Call specific load layout code for the current trait layout
-                    if (currentTraitLayout != null) {
-                        currentTraitLayout.loadLayout();
-                    } else {
-                        etCurVal.removeTextChangedListener(parent.getCvText());
-                        etCurVal.setVisibility(EditText.VISIBLE);
-                        etCurVal.setEnabled(true);
-                    }
-                }
-
-                public void onNothingSelected(AdapterView<?> arg0) {
-                }
-            });
-
-            traitBox.setSelection(traitPosition);
-        }
-        
-        BaseTraitLayout getTraitLayout(TraitObject trait) {
-            if (trait.usesBarcode())
-                return traitLayouts.getTraitLayout("with_barcode");
-            else
-                return traitLayouts.getTraitLayout(trait.getFormat());
-        }
-
-        public Map getNewTraits() {
-            return newTraits;
-        }
-
-        void setNewTraits(final String plotID) {
-            newTraits = (HashMap) dt.getUserDetail(plotID).clone();
-        }
-
-        void setNewTraits(Map newTraits) {
-            this.newTraits = newTraits;
-        }
-
-        ImageView getTraitLeft() {
-            return traitLeft;
-        }
-
-        ImageView getTraitRight() {
-            return traitRight;
-        }
-
-        boolean existsNewTraits() {
-            return newTraits != null;
-        }
-
-        void setPrefixTraits() {
-            prefixTraits = dt.getRangeColumnNames();
-        }
-
-        void setSelection(int pos) {
-            traitType.setSelection(pos);
-        }
-
-        int getSelectedItemPosition() {
-            try {
-                return traitType.getSelectedItemPosition();
-            } catch (Exception f) {
-                return 0;
+        for (String s : traitList) {
+            if (newTraits.containsKey(s)) {
+                data.append(s).append(": ");
+                data.append(newTraits.get(s).toString()).append("\n");
             }
         }
+        return data.toString();
+    }
 
-        public final TraitObject getCurrentTrait() {
-            return currentTrait;
-        }
-
-        final String getCurrentFormat() {
-            return currentTrait.getFormat();
-        }
-
-        boolean existsTrait() {
-            return newTraits.containsKey(currentTrait.getTrait());
-        }
-
-        final String createSummaryText(final String plotID) {
-            String[] traitList = dt.getAllTraits();
-            StringBuilder data = new StringBuilder();
-
-            //TODO this test crashes app
-            if (rangeBox.getCRange() != null) {
-                for (String s : traitBox.prefixTraits) {
-                    data.append(s).append(": ");
-                    data.append(dt.getDropDownRange(s, plotID)[0]).append("\n");
-                }
+    private boolean validateData() {
+        for (LayoutCollections layout : traitLayoutTable) {
+            if (!layout.validateData()) {
+                playSound("error");
+                return false;
             }
-
-            for (String s : traitList) {
-                if (newTraits.containsKey(s)) {
-                    data.append(s).append(": ");
-                    data.append(newTraits.get(s).toString()).append("\n");
-                }
-            }
-            return data.toString();
         }
-
-        public void remove(String traitName, String plotID) {
-            if (newTraits.containsKey(traitName))
-                newTraits.remove(traitName);
-            dt.deleteTrait(plotID, traitName);
-        }
-
-        public void remove(TraitObject trait, String plotID) {
-            remove(trait.getTrait(), plotID);
-        }
-
-        private OnTouchListener createTraitOnTouchListener(final ImageView arrow,
-                                                           final int imageIdUp, final int imageIdDown) {
-            return new OnTouchListener() {
-                public boolean onTouch(View v, MotionEvent event) {
-                    switch (event.getAction()) {
-
-                        case MotionEvent.ACTION_DOWN:
-                            arrow.setImageResource(imageIdDown);
-                            break;
-                        case MotionEvent.ACTION_MOVE:
-                            break;
-                        case MotionEvent.ACTION_UP:
-                            arrow.setImageResource(imageIdUp);
-                        case MotionEvent.ACTION_CANCEL:
-                            break;
-                    }
-
-                    // return true to prevent calling btn onClick handler
-                    return false;
-                }
-            };
-        }
-
-        void moveTrait(String direction) {
-            int pos = 0;
-
-            if (!validateData()) {
-                return;
-            }
-
-            // Force the keyboard to be hidden to handle bug
-            try {
-                etCurVal = parent.getEtCurVal();
-                InputMethodManager imm = parent.getIMM();
-                imm.hideSoftInputFromWindow(etCurVal.getWindowToken(), 0);
-            } catch (Exception ignore) {
-            }
-
-            RangeBox rangeBox = parent.getRangeBox();
-            if (direction.equals("left")) {
-                pos = traitType.getSelectedItemPosition() - 1;
-
-                if (pos < 0) {
-                    pos = traitType.getCount() - 1;
-
-                    if (parent.is_cycling_traits_advances())
-                        rangeBox.clickLeft();
-                }
-            } else if (direction.equals("right")) {
-                pos = traitType.getSelectedItemPosition() + 1;
-
-                if (pos > traitType.getCount() - 1) {
-                    pos = 0;
-
-                    if (parent.is_cycling_traits_advances())
-                        rangeBox.clickRight();
-                }
-            }
-
-            traitType.setSelection(pos);
-        }
-
-        public void update(String parent, String value) {
-            if (newTraits.containsKey(parent)) {
-                newTraits.remove(parent);
-            }
-
-            newTraits.put(parent, value);
-        }
+        return true;
     }
 
     ///// class RangeBox /////
 
-    class RangeBox {
+    public class RangeBox {
         private TabletCollectActivity parent;
         private int[] rangeID;
         private int paging;
@@ -1640,7 +1337,7 @@ Log.d("TabletCollectActivity", "moveToSearch");
                 }
 
                 rangeBox.display();
-                traitBox.setNewTraits(rangeBox.getPlotID());
+                setNewTraits(rangeBox.getPlotID());
 
                 initWidgets(true);
             }
@@ -1662,7 +1359,7 @@ Log.d("TabletCollectActivity", "moveToSearch");
                 lastRange = cRange.range;
                 display();
 
-                traitBox.setNewTraits(cRange.plot_id);
+                setNewTraits(cRange.plot_id);
             }
         }
 
@@ -1695,7 +1392,7 @@ Log.d("TabletCollectActivity", "moveToSearch");
             tvPlot.setText(cRange.plot);
         }
 
-        void rightClick() {
+        public void rightClick() {
             rangeRight.performClick();
         }
 
@@ -1754,7 +1451,7 @@ Log.d("TabletCollectActivity", "moveToSearch");
             }
 
             if (ep.getBoolean(GeneralKeys.DISABLE_ENTRY_ARROW_LEFT, false)
-                    && !parent.getTraitBox().existsTrait()) {
+                    && !existsTrait()) {
                 playSound("error");
             } else {
                 if (rangeID != null && rangeID.length > 0) {
@@ -1773,7 +1470,7 @@ Log.d("TabletCollectActivity", "moveToSearch");
             }
 
             if (ep.getBoolean(GeneralKeys.DISABLE_ENTRY_ARROW_RIGHT, false)
-                    && !parent.getTraitBox().existsTrait()) {
+                    && !existsTrait()) {
                 playSound("error");
             } else {
                 if (rangeID != null && rangeID.length > 0) {
@@ -1802,7 +1499,6 @@ Log.d("TabletCollectActivity", "moveToSearch");
                 }
 
                 final int prevPos = pos;
-                TraitObject trait = parent.getTraitBox().getCurrentTrait();
                 while (true) {
                     pos = moveSimply(pos, step);
                     // absorb the differece

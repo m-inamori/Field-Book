@@ -64,17 +64,17 @@ public class AudioTraitLayout extends BaseTraitLayout {
 
     @Override
     public void loadLayout() {
-        if (!getNewTraits().containsKey(getCurrentTrait().getTrait())) {
+        if (!getNewTraits().containsKey(traitObject.getTrait())) {
             buttonState = ButtonState.WAITING_FOR_RECORDING;
             controlButton.setImageResource(buttonState.getImageId());
             audioRecordingText.setText("");
-        } else if (getNewTraits().containsKey(getCurrentTrait().getTrait())
-                && getNewTraits().get(getCurrentTrait().getTrait()).toString().equals("NA")) {
+        } else if (getNewTraits().containsKey(traitObject.getTrait())
+                && getNewTraits().get(traitObject.getTrait()).toString().equals("NA")) {
             buttonState = ButtonState.WAITING_FOR_RECORDING;
             controlButton.setImageResource(buttonState.getImageId());
             audioRecordingText.setText("NA");
         } else {
-            File recordingLocation = new File(getNewTraits().get(getCurrentTrait().getTrait()).toString());
+            File recordingLocation = new File(getNewTraits().get(traitObject.getTrait()).toString());
             if (recordingLocation.exists()) {
                 this.recordingLocation = recordingLocation;
                 buttonState = ButtonState.WAITING_FOR_PLAYBACK;
@@ -89,7 +89,7 @@ public class AudioTraitLayout extends BaseTraitLayout {
     @Override
     public void deleteTraitListener() {
         deleteRecording();
-        removeTrait(getCurrentTrait().getTrait());
+        removeTrait(traitObject);
         recordingLocation = null;
         mediaPlayer = null;
         mediaRecorder = null;
@@ -186,7 +186,7 @@ public class AudioTraitLayout extends BaseTraitLayout {
         private void startRecording() {
             try {
                 deleteRecording();
-                removeTrait(getCurrentTrait().getTrait());
+                removeTrait(traitObject);
                 audioRecordingText.setText("");
                 prepareRecorder();
                 if (mediaRecorder != null) {
@@ -203,7 +203,7 @@ public class AudioTraitLayout extends BaseTraitLayout {
                 File storedAudio = new File(recordingLocation.getAbsolutePath());
                 Utils.scanFile(getContext(), storedAudio);
                 releaseRecorder();
-                updateTrait(getCurrentTrait().getTrait(), "audio", recordingLocation.getAbsolutePath());
+                updateTrait(getTraitObject().getTrait(), "audio", recordingLocation.getAbsolutePath());
                 audioRecordingText.setText(getContext().getString(R.string.trait_layout_data_stored));
             } catch (Exception e) {
                 e.printStackTrace();

@@ -58,7 +58,7 @@ public class LocationTraitLayout extends BaseTraitLayout {
                     getContext().startActivity(intent);
                 }
                 getEtCurVal().setText(fullLocation);
-                updateTrait(getCurrentTrait().getTrait(), "location", fullLocation);
+                updateTrait(traitObject.getTrait(), "location", fullLocation);
             }
         });
     }
@@ -68,16 +68,16 @@ public class LocationTraitLayout extends BaseTraitLayout {
 
         getEtCurVal().setVisibility(EditText.VISIBLE);
 
-        if (getNewTraits().containsKey(getCurrentTrait().getTrait())) {
-            getEtCurVal().setText(getNewTraits().get(getCurrentTrait().getTrait()).toString());
+        if (getNewTraits().containsKey(traitObject.getTrait())) {
+            getEtCurVal().setText(getNewTraits().get(traitObject.getTrait()).toString());
             getEtCurVal().setTextColor(Color.parseColor(getDisplayColor()));
         } else {
             getEtCurVal().setText("");
             getEtCurVal().setTextColor(Color.BLACK);
 
-            if (getCurrentTrait().getDefaultValue() != null
-                    && getCurrentTrait().getDefaultValue().length() > 0)
-                getEtCurVal().setText(getCurrentTrait().getDefaultValue());
+            if (traitObject.getDefaultValue() != null
+                    && traitObject.getDefaultValue().length() > 0)
+                getEtCurVal().setText(traitObject.getDefaultValue());
         }
     }
 

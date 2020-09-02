@@ -125,20 +125,23 @@ public class DiseaseRatingTraitLayout extends BaseTraitLayout {
     @Override
     public void loadLayout() {
         // clear NA hint
+        // あとで復活させる
+        /*
         getEtCurVal().setHint("");
         getEtCurVal().removeTextChangedListener(getCvText());
         getEtCurVal().setVisibility(EditText.VISIBLE);
+         */
 
-        if (!getNewTraits().containsKey(getCurrentTrait().getTrait())) {
+        if (!getNewTraits().containsKey(traitObject.getTrait())) {
             getEtCurVal().setText("");
             getEtCurVal().setTextColor(Color.BLACK);
 
-            if (getCurrentTrait().getDefaultValue() != null
-                    && getCurrentTrait().getDefaultValue().length() > 0)
-                getEtCurVal().setText(getCurrentTrait().getDefaultValue());
+            if (traitObject.getDefaultValue() != null
+                    && traitObject.getDefaultValue().length() > 0)
+                getEtCurVal().setText(traitObject.getDefaultValue());
 
         } else {
-            getEtCurVal().setText(getNewTraits().get(getCurrentTrait().getTrait()).toString());
+            getEtCurVal().setText(getNewTraits().get(traitObject.getTrait()).toString());
             getEtCurVal().setTextColor(Color.parseColor(getDisplayColor()));
         }
     }
@@ -146,7 +149,7 @@ public class DiseaseRatingTraitLayout extends BaseTraitLayout {
     @Override
     public void deleteTraitListener() {
         getEtCurVal().setText("");
-        removeTrait(getCurrentTrait().getTrait());
+        removeTrait(traitObject);
     }
 
     private class RustButtonOnClickListener implements OnClickListener {
@@ -167,23 +170,21 @@ public class DiseaseRatingTraitLayout extends BaseTraitLayout {
             }
 
             if (getVisibility() == View.VISIBLE) {
-                if (getEtCurVal().getText().length() > 0
-                        && !v.equals("/")
-                        && !getEtCurVal().getText().toString().substring(getEtCurVal().getText().length() - 1).equals("/")) {
-
-                    String lastChar = getEtCurVal().getText().toString().substring(getEtCurVal().getText().toString().length() - 1);
+                final String value = getEtCurVal().getText().toString();
+                if (value.length() > 0 && !v.equals("/")
+                            && !value.substring(value.length() - 1).equals("/")) {
+                    String lastChar = value.substring(value.length() - 1);
                     if (!lastChar.matches("^[a-zA-Z]*$")) {
                         v = ":" + v;
                     }
                 }
 
-                if (getEtCurVal().getText().toString().matches(".*\\d.*")
-                        && v.matches(".*\\d.*")
-                        && !getEtCurVal().getText().toString().contains("/")) {
+                if (value.matches(".*\\d.*") && v.matches(".*\\d.*")
+                                             && !value.contains("/")) {
                     Utils.makeToast(getContext(),getContext().getString(R.string.trait_error_disease_severity));
                 } else {
-                    getEtCurVal().setText(getEtCurVal().getText().toString() + v);
-                    updateTrait(getCurrentTrait().getTrait(), getCurrentTrait().getFormat(), getEtCurVal().getText().toString());
+                    getEtCurVal().setText(value + v);
+                    updateTrait(traitObject.getTrait(), traitObject.getFormat(), value);
                 }
             }
         }

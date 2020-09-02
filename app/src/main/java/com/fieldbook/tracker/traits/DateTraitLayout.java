@@ -79,7 +79,7 @@ public class DateTraitLayout extends BaseTraitLayout {
                 month.setText(getMonthForInt(calendar.get(Calendar.MONTH)));
 
                 // Change text color
-                if (getNewTraits().containsKey(getCurrentTrait().getTrait())) {
+                if (getNewTraits().containsKey(traitObject.getTrait())) {
                     month.setTextColor(Color.BLUE);
                     day.setTextColor(Color.BLUE);
                 } else {
@@ -110,7 +110,7 @@ public class DateTraitLayout extends BaseTraitLayout {
                 month.setText(getMonthForInt(calendar.get(Calendar.MONTH)));
 
                 // Change text color
-                if (getNewTraits().containsKey(getCurrentTrait().getTrait())) {
+                if (getNewTraits().containsKey(traitObject.getTrait())) {
                     month.setTextColor(Color.BLUE);
                     day.setTextColor(Color.BLUE);
                 } else {
@@ -132,10 +132,11 @@ public class DateTraitLayout extends BaseTraitLayout {
                     e.printStackTrace();
                 }
 
+                final String trait = traitObject.getTrait();
                 if (getPrefs().getBoolean(GeneralKeys.USE_DAY_OF_YEAR, false)) {
-                    updateTrait(getCurrentTrait().getTrait(), "date", String.valueOf(calendar.get(Calendar.DAY_OF_YEAR)));
+                    updateTrait(trait, "date", String.valueOf(calendar.get(Calendar.DAY_OF_YEAR)));
                 } else {
-                    updateTrait(getCurrentTrait().getTrait(), "date", dateFormat.format(calendar.getTime()));
+                    updateTrait(trait, "date", dateFormat.format(calendar.getTime()));
                 }
 
                 // Change the text color accordingly
@@ -153,12 +154,12 @@ public class DateTraitLayout extends BaseTraitLayout {
         final Calendar c = Calendar.getInstance();
         date = dateFormat.format(c.getTime());
 
-        if (getNewTraits().containsKey(getCurrentTrait().getTrait()) && !getNewTraits().get(getCurrentTrait().getTrait()).toString().equals("NA")) {
-            if (getNewTraits().get(getCurrentTrait().getTrait()).toString().length() < 4 && getNewTraits().get(getCurrentTrait().getTrait()).toString().length() > 0) {
+        if (getNewTraits().containsKey(traitObject.getTrait()) && !getNewTraits().get(traitObject.getTrait()).toString().equals("NA")) {
+            if (getNewTraits().get(traitObject.getTrait()).toString().length() < 4 && getNewTraits().get(traitObject.getTrait()).toString().length() > 0) {
                 Calendar calendar = Calendar.getInstance();
 
                 //convert day of year to yyyy-mm-dd string
-                date = getNewTraits().get(getCurrentTrait().getTrait()).toString();
+                date = getNewTraits().get(traitObject.getTrait()).toString();
                 calendar.set(Calendar.DAY_OF_YEAR, Integer.parseInt(date));
                 date = dateFormat.format(calendar.getTime());
 
@@ -169,9 +170,9 @@ public class DateTraitLayout extends BaseTraitLayout {
                 month.setText(getMonthForInt(calendar.get(Calendar.MONTH)));
                 day.setText(String.format("%02d", calendar.get(Calendar.DAY_OF_MONTH)));
 
-            } else if (getNewTraits().get(getCurrentTrait().getTrait()).toString().contains(".")) {
+            } else if (getNewTraits().get(traitObject.getTrait()).toString().contains(".")) {
                 //convert from yyyy.mm.dd to yyyy-mm-dd
-                String[] oldDate = getNewTraits().get(getCurrentTrait().getTrait()).toString().split("\\.");
+                String[] oldDate = getNewTraits().get(traitObject.getTrait()).toString().split("\\.");
                 date = oldDate[0] + "-" + String.format("%02d", Integer.parseInt(oldDate[1])) + "-" + String.format("%02d", Integer.parseInt(oldDate[2]));
 
                 //set month/day text and color
@@ -184,7 +185,7 @@ public class DateTraitLayout extends BaseTraitLayout {
                 Calendar calendar = Calendar.getInstance();
 
                 //new format
-                date = getNewTraits().get(getCurrentTrait().getTrait()).toString();
+                date = getNewTraits().get(traitObject.getTrait()).toString();
 
                 //Parse date
                 try {
@@ -200,7 +201,8 @@ public class DateTraitLayout extends BaseTraitLayout {
                 month.setTextColor(Color.parseColor(getDisplayColor()));
                 day.setTextColor(Color.parseColor(getDisplayColor()));
             }
-        } else if (getNewTraits().containsKey(getCurrentTrait().getTrait()) && getNewTraits().get(getCurrentTrait().getTrait()).toString().equals("NA")) {
+        } else if (getNewTraits().containsKey(traitObject.getTrait()) &&
+                    getNewTraits().get(traitObject.getTrait()).toString().equals("NA")) {
             month.setText("");
             day.setText("NA");
         } else {
@@ -213,7 +215,7 @@ public class DateTraitLayout extends BaseTraitLayout {
 
     @Override
     public void deleteTraitListener() {
-        removeTrait(getCurrentTrait().getTrait());
+        removeTrait(traitObject);
 
         final Calendar c = Calendar.getInstance();
         date = dateFormat.format(c.getTime());
