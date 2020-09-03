@@ -45,12 +45,12 @@ public class CounterTraitLayout extends BaseTraitLayout {
         addCounterBtn.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 //TODO NullPointerException
-                if (getNewTraits().containsKey(getCurrentTrait().getTrait()) && getNewTraits().get(getCurrentTrait().getTrait()).toString().equals("NA")) {
+                if (getNewTraits().containsKey(traitObject.getTrait()) && getNewTraits().get(traitObject.getTrait()).toString().equals("NA")) {
                     counterTv.setText("1");
                 } else {
                     counterTv.setText(Integer.toString(Integer.parseInt(counterTv.getText().toString()) + 1));
                 }
-                updateTrait(getCurrentTrait().getTrait(), "counter", counterTv.getText().toString());
+                updateTrait(traitObject.getTrait(), "counter", counterTv.getText().toString());
             }
         });
 
@@ -58,12 +58,13 @@ public class CounterTraitLayout extends BaseTraitLayout {
         minusCounterBtn.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 //TODO NullPointerException
-                if (getNewTraits().containsKey(getCurrentTrait().getTrait()) && getNewTraits().get(getCurrentTrait().getTrait()).toString().equals("NA")) {
+                if (getNewTraits().containsKey(traitObject.getTrait()) &&
+                    getNewTraits().get(traitObject.getTrait()).toString().equals("NA")) {
                     counterTv.setText("-1");
                 } else {
                     counterTv.setText(Integer.toString(Integer.parseInt(counterTv.getText().toString()) - 1));
                 }
-                updateTrait(getCurrentTrait().getTrait(), "counter", counterTv.getText().toString());
+                updateTrait(traitObject.getTrait(), "counter", counterTv.getText().toString());
             }
         });
 
@@ -74,16 +75,16 @@ public class CounterTraitLayout extends BaseTraitLayout {
         getEtCurVal().setVisibility(EditText.GONE);
         getEtCurVal().setEnabled(false);
 
-        if (!getNewTraits().containsKey(getCurrentTrait().getTrait())) {
+        if (!getNewTraits().containsKey(traitObject.getTrait())) {
             counterTv.setText("0");
         } else {
-            counterTv.setText(getNewTraits().get(getCurrentTrait().getTrait()).toString());
+            counterTv.setText(getNewTraits().get(traitObject.getTrait()).toString());
         }
     }
 
     @Override
     public void deleteTraitListener() {
-        removeTrait(getCurrentTrait().getTrait());
+        removeTrait(traitObject);
         counterTv.setText("0");
     }
 }

@@ -217,7 +217,6 @@ public class TraitEditorActivity extends AppCompatActivity {
 
     // Helper function to load data
     public static void loadData() {
-Log.d("TraitEditorActivity", "loadData");
         try {
 
             HashMap visibility = ConfigActivity.dt.getTraitVisibility();

@@ -31,6 +31,7 @@ import androidx.core.content.FileProvider;
 import com.fieldbook.tracker.activities.ConfigActivity;
 import com.fieldbook.tracker.activities.CollectActivity;
 import com.fieldbook.tracker.R;
+import com.fieldbook.tracker.activities.TabletCollectActivity;
 import com.fieldbook.tracker.brapi.Observation;
 import com.fieldbook.tracker.objects.TraitObject;
 import com.fieldbook.tracker.utilities.Constants;
@@ -90,9 +91,13 @@ public class PhotoTraitLayout extends BaseTraitLayout {
 
     @Override
     public void loadLayout() {
+        // あとで、セルの頭にEditTextを置く
+        // そのときは復活させる
+        /*
         getEtCurVal().removeTextChangedListener(getCvText());
         getEtCurVal().setVisibility(EditText.GONE);
         getEtCurVal().setEnabled(false);
+         */
 
         // Run saving task in the background so we can showing progress dialog
         Handler mHandler = new Handler();
@@ -109,14 +114,14 @@ public class PhotoTraitLayout extends BaseTraitLayout {
         if (img.listFiles() != null) {
 
             //TODO causes crash
-            photoLocation = ConfigActivity.dt.getPlotPhotos(getCRange().plot_id, getCurrentTrait().getTrait());
+            photoLocation = ConfigActivity.dt.getPlotPhotos(getCRange().plot_id, traitObject.getTrait());
 
             for (int i = 0; i < photoLocation.size(); i++) {
                 drawables.add(new BitmapDrawable(displayScaledSavedPhoto(photoLocation.get(i))));
             }
         }
 
-        if (!getNewTraits().containsKey(getCurrentTrait().getTrait())) {
+        if (!((TabletCollectActivity)parent).getNewTraits().containsKey(traitObject.getTrait())) {
             if (!img.exists()) {
                 img.mkdirs();
             }
@@ -295,17 +300,17 @@ public class PhotoTraitLayout extends BaseTraitLayout {
 
                     // Remove individual images
                     if (brapiDelete) {
-                        updateTraitAllowDuplicates(getCurrentTrait().getTrait(), "photo", item, "NA", newTraits);
-                        //ConfigActivity.dt.updateTraitByValue(getCRange().plot_id, getCurrentTrait().getTrait(), item, "NA");
+                        updateTraitAllowDuplicates(traitObject.getTrait(), "photo", item, "NA", newTraits);
+                        //ConfigActivity.dt.updateTraitByValue(getCRange().plot_id, traitObject.getTrait(), item, "NA");
                         loadLayout();
                     } else {
-                        ConfigActivity.dt.deleteTraitByValue(getCRange().plot_id, getCurrentTrait().getTrait(), item);
+                        ConfigActivity.dt.deleteTraitByValue(getCRange().plot_id, traitObject.getTrait(), item);
                     }
 
                     // Only do a purge by trait when there are no more images left
                     if (!brapiDelete) {
                         if (photoLocation.size() == 0)
-                            removeTrait(getCurrentTrait().getTrait());
+                            removeTrait(traitObject);
                     }
 
                     photoAdapter = new GalleryImageAdapter((Activity) getContext(), drawables);
@@ -313,7 +318,7 @@ public class PhotoTraitLayout extends BaseTraitLayout {
                     photo.setAdapter(photoAdapter);
                 } else {
                     // If an NA exists, delete it
-                    ConfigActivity.dt.deleteTraitByValue(getCRange().plot_id, getCurrentTrait().getTrait(), "NA");
+                    ConfigActivity.dt.deleteTraitByValue(getCRange().plot_id, traitObject.getTrait(), "NA");
                     ArrayList<Drawable> emptyList = new ArrayList<>();
 
                     photoAdapter = new GalleryImageAdapter((Activity) getContext(), emptyList);
@@ -345,7 +350,7 @@ public class PhotoTraitLayout extends BaseTraitLayout {
 
         dir.mkdirs();
 
-        String generatedName = getCRange().plot_id + "_" + getCurrentTrait().getTrait() + "_" + getRep() + "_" + timeStamp.format(Calendar.getInstance().getTime()) + ".jpg";
+        String generatedName = getCRange().plot_id + "_" + traitObject.getTrait() + "_" + getRep() + "_" + timeStamp.format(Calendar.getInstance().getTime()) + ".jpg";
         mCurrentPhotoPath = generatedName;
 
         Log.w("File", Constants.PLOTDATAPATH + "/" + getPrefs().getString("FieldFile", "") + "/photos/" + generatedName);
@@ -364,7 +369,7 @@ public class PhotoTraitLayout extends BaseTraitLayout {
     }
 
     private String getRep() {
-        int repInt = ConfigActivity.dt.getRep(getCRange().plot_id, getCurrentTrait().getTrait());
+        int repInt = ConfigActivity.dt.getRep(getCRange().plot_id, traitObject.getTrait());
         return String.valueOf(repInt);
     }
 
@@ -424,7 +429,7 @@ public class PhotoTraitLayout extends BaseTraitLayout {
                 int m;
 
                 try {
-                    m = Integer.parseInt(getCurrentTrait().getDetails());
+                    m = Integer.parseInt(traitObject.getDetails());
                 } catch (Exception n) {
                     m = 0;
                 }

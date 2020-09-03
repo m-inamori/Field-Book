@@ -2,13 +2,18 @@ package com.fieldbook.tracker.traits;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
 import com.fieldbook.tracker.activities.CollectActivity;
 import com.fieldbook.tracker.R;
+import com.fieldbook.tracker.activities.TabletCollectActivity;
+import com.fieldbook.tracker.objects.TraitObject;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -16,6 +21,8 @@ import java.util.Map;
 public class NumericTraitLayout extends BaseTraitLayout {
 
     private Map<Integer, Button> numberButtons;
+
+    private TextWatcher cvText;
 
     public NumericTraitLayout(Context context) {
         super(context);
@@ -66,10 +73,16 @@ public class NumericTraitLayout extends BaseTraitLayout {
             @Override
             public boolean onLongClick(View v) {
                 getEtCurVal().setText("");
-                removeTrait(getCurrentTrait().getTrait());
+                removeTrait(traitObject);
                 return false;
             }
         });
+
+        for (Button numButton : numberButtons.values()) {
+            numButton.setMinWidth(150);
+            numButton.setMinimumWidth(150);
+            numButton.setTextSize(30);
+        }
     }
 
     @Override
@@ -78,18 +91,40 @@ public class NumericTraitLayout extends BaseTraitLayout {
         getEtCurVal().setHint("");
         getEtCurVal().setVisibility(EditText.VISIBLE);
 
-        if (getNewTraits().containsKey(getCurrentTrait().getTrait())) {
-            getEtCurVal().setText(getNewTraits().get(getCurrentTrait().getTrait()).toString());
+        if (parent.getNewTraits().containsKey(traitObject.getTrait())) {
+            getEtCurVal().setText(parent.getNewTraits().get(traitObject.getTrait()).toString());
             getEtCurVal().setTextColor(Color.parseColor(getDisplayColor()));
         } else {
             getEtCurVal().setText("");
             getEtCurVal().setTextColor(Color.BLACK);
 
-            if (getCurrentTrait().getDefaultValue() != null && getCurrentTrait().getDefaultValue().length() > 0) {
-                getEtCurVal().setText(getCurrentTrait().getDefaultValue());
-                updateTrait(getCurrentTrait().getTrait(), getCurrentTrait().getFormat(), getEtCurVal().getText().toString());
+            if (traitObject.getDefaultValue() != null && traitObject.getDefaultValue().length() > 0) {
+                getEtCurVal().setText(traitObject.getDefaultValue());
+                updateTrait(traitObject.getTrait(), traitObject.getFormat(), getEtCurVal().getText().toString());
             }
         }
+
+        cvText = new TextWatcher() {
+            public void afterTextChanged(Editable en) {
+                if (en.toString().length() > 0) {
+                    if (parent.existsNewTraits() & traitObject != null)
+                        updateTrait(traitObject.getTrait(), traitObject.getFormat(), en.toString());
+                } else {
+                    if (parent.existsNewTraits() & traitObject != null)
+                        removeTrait(traitObject);
+                }
+                //tNum.setSelection(tNum.getText().length());
+            }
+
+            public void beforeTextChanged(CharSequence arg0, int arg1,
+                                          int arg2, int arg3) {
+            }
+
+            public void onTextChanged(CharSequence arg0, int arg1, int arg2,
+                                      int arg3) {
+            }
+
+        };
     }
 
     @Override
@@ -106,12 +141,14 @@ public class NumericTraitLayout extends BaseTraitLayout {
                 final int length = curText.length();
                 if (length > 0) {
                     getEtCurVal().setText(curText.substring(0, length - 1));
-                    updateTrait(getCurrentTrait().getTrait(), getCurrentTrait().getFormat(), getEtCurVal().getText().toString());
+                    updateTrait(traitObject.getTrait(), traitObject.getFormat(),
+                                                getEtCurVal().getText().toString());
                 }
             } else if (numberButtons.containsKey(view.getId())) {
                 final String v = numberButtons.get(view.getId()).getText().toString();
                 getEtCurVal().setText(curText + v);
-                updateTrait(getCurrentTrait().getTrait(), getCurrentTrait().getFormat(), getEtCurVal().getText().toString());
+                updateTrait(traitObject.getTrait(), traitObject.getFormat(),
+                                                getEtCurVal().getText().toString());
             }
         }
     }

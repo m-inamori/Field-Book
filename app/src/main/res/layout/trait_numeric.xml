@@ -1,10 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.fieldbook.tracker.traits.NumericTraitLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/numericLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:visibility="gone">
+
+    <TextView
+        android:id="@+id/traitDetails"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:text="@string/main_trait_details"
+        android:textColor="#000000"
+        android:textSize="@dimen/text_size_small"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/rangeLeft"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/traitRight" />
+
+    <EditText
+        android:id="@+id/etCurVal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:enabled="false"
+        android:gravity="center"
+        android:inputType="textNoSuggestions"
+        android:maxLines="1"
+        android:text=""
+        android:textColor="#000000"
+        android:textSize="@dimen/text_size_xlarge"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/svTraitContainer"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/valuesPlotRangeHolder" />
 
     <GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="wrap_content"

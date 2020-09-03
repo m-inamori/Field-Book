@@ -57,7 +57,7 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
 
     @Override
     public void loadLayout() {
-        final String trait = getCurrentTrait().getTrait();
+        final String trait = traitObject.getTrait();
         getEtCurVal().setHint("");
         getEtCurVal().setVisibility(EditText.VISIBLE);
 
@@ -69,7 +69,7 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
             getEtCurVal().setTextColor(Color.parseColor(getDisplayColor()));
         }
 
-        final String[] cat = getCurrentTrait().getCategories().split("/");
+        final String[] cat = traitObject.getCategories().split("/");
 
         FlexboxLayoutManager layoutManager = new FlexboxLayoutManager(getContext());
         layoutManager.setFlexWrap(FlexWrap.WRAP);
@@ -85,6 +85,7 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
                 public void onBindViewHolder(MulticatTraitViewHolder holder, int position) {
                     holder.bindTo();
                     holder.mButton.setText(cat[position]);
+                    holder.mButton.setTextSize(20);
                     holder.mButton.setOnClickListener(createClickListener(holder.mButton,position));
                     if (hasCategory(cat[position], getEtCurVal().getText().toString()))
                         pressOnButton(holder.mButton);
@@ -121,15 +122,14 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
                     pressOnButton(button);
                     addCategory(category);
                 }
-                updateTrait(getCurrentTrait().getTrait(),
-                        getCurrentTrait().getFormat(),
-                        getEtCurVal().getText().toString());
+                updateTrait(traitObject.getTrait(), traitObject.getFormat(),
+                                            getEtCurVal().getText().toString());
             }
         };
     }
 
     private boolean existsCategory(final String category) {
-        final String[] cats = getCurrentTrait().getCategories().split("/");
+        final String[] cats = traitObject.getCategories().split("/");
         for (String cat : cats) {
             if (cat.equals(category))
                 return true;

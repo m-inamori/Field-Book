@@ -5,13 +5,21 @@ import android.graphics.Color;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import com.fieldbook.tracker.R;
 import com.fieldbook.tracker.activities.CollectActivity;
 
 public class TextTraitLayout extends BaseTraitLayout {
 
     private Handler mHandler = new Handler();
+
+    private EditText    etCurVal;
 
     public TextTraitLayout(Context context) {
         super(context);
@@ -41,34 +49,42 @@ public class TextTraitLayout extends BaseTraitLayout {
 
     @Override
     public void loadLayout() {
-        getEtCurVal().setHint("");
-        getEtCurVal().setVisibility(EditText.VISIBLE);
-        getEtCurVal().setSelection(getEtCurVal().getText().length());
-        getEtCurVal().setEnabled(true);
+        // Current value display
+        etCurVal = findViewById(R.id.etCurVal);
 
-        if (getNewTraits().containsKey(getCurrentTrait().getTrait())) {
-            getEtCurVal().removeTextChangedListener(getCvText());
-            getEtCurVal().setText(getNewTraits().get(getCurrentTrait().getTrait()).toString());
-            getEtCurVal().setTextColor(Color.parseColor(getDisplayColor()));
-            getEtCurVal().addTextChangedListener(getCvText());
-            getEtCurVal().setSelection(getEtCurVal().getText().length());
+        etCurVal.setHint("");
+        etCurVal.setVisibility(EditText.VISIBLE);
+        etCurVal.setSelection(etCurVal.getText().length());
+        etCurVal.setEnabled(true);
+
+        // あとで復活させる
+        /*
+        if (getNewTraits().containsKey(traitObject.getTrait())) {
+            etCurVal.removeTextChangedListener(getCvText());
+            etCurVal.setText(getNewTraits().get(traitObject.getTrait()).toString());
+            etCurVal.setTextColor(Color.parseColor(getDisplayColor()));
+            etCurVal.addTextChangedListener(getCvText());
+            etCurVal.setSelection(etCurVal.getText().length());
         } else {
-            getEtCurVal().removeTextChangedListener(getCvText());
-            getEtCurVal().setText("");
-            getEtCurVal().setTextColor(Color.BLACK);
+            etCurVal.removeTextChangedListener(getCvText());
+            etCurVal.setText("");
+            etCurVal.setTextColor(Color.BLACK);
 
-            if (getCurrentTrait().getDefaultValue() != null && getCurrentTrait().getDefaultValue().length() > 0) {
-                getEtCurVal().setText(getCurrentTrait().getDefaultValue());
-                updateTrait(getCurrentTrait().getTrait(), getCurrentTrait().getFormat(), getEtCurVal().getText().toString());
+            if (traitObject.getDefaultValue() != null && traitObject.getDefaultValue().length() > 0) {
+                etCurVal.setText(traitObject.getDefaultValue());
+                updateTrait(traitObject.getTrait(), traitObject.getFormat(), etCurVal.getText().toString());
             }
 
-            getEtCurVal().addTextChangedListener(getCvText());
-            getEtCurVal().setSelection(getEtCurVal().getText().length());
+            etCurVal.addTextChangedListener(getCvText());
+            etCurVal.setSelection(etCurVal.getText().length());
         }
+         */
 
         // This is needed to fix a keyboard bug
         mHandler.postDelayed(new Runnable() {
             public void run() {
+                Log.d("TextTraitLayout", traitObject.getTrait());
+                Log.d("TextTraitLayout", String.valueOf(etCurVal == null));
                 getEtCurVal().dispatchTouchEvent(MotionEvent.obtain(
                         SystemClock.uptimeMillis(),
                         SystemClock.uptimeMillis(),

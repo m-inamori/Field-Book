@@ -1,9 +1,11 @@
 package com.fieldbook.tracker.traits;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -11,6 +13,7 @@ import android.widget.Toast;
 import com.fieldbook.tracker.activities.TabletCollectActivity;
 import com.fieldbook.tracker.objects.RangeObject;
 import com.fieldbook.tracker.objects.TraitObject;
+import com.google.android.material.tabs.TabLayout;
 
 import java.util.Map;
 
@@ -27,10 +30,20 @@ public abstract class BaseTraitLayout extends LinearLayout {
         super(context, attrs, defStyleAttr);
     }
 
+    protected TraitObject traitObject = null;
+    protected TabletCollectActivity parent = null;
+    protected LayoutCollections cell = null;
+
+    public void setTraitObject(TraitObject tobj) { traitObject = tobj; }
+    public void setParent(TabletCollectActivity _activity, LayoutCollections _cell) {
+        parent = _activity;
+        cell = _cell;
+    }
+
     public abstract String type();  // return trait type
 
-    public boolean isTraitType(String trait) {
-        return trait.equals(type());
+    public boolean isTraitType(String format) {
+        return type().equals(format);
     }
 
     public abstract void init();
@@ -41,14 +54,6 @@ public abstract class BaseTraitLayout extends LinearLayout {
 
     public abstract void setNaTraitsText();
 
-    public Map getNewTraits() {
-        return ((TabletCollectActivity) getContext()).getNewTraits();
-    }
-
-    public TraitObject getCurrentTrait() {
-        return ((TabletCollectActivity) getContext()).getCurrentTrait();
-    }
-
     public SharedPreferences getPrefs() {
         return getContext().getSharedPreferences("Settings", 0);
     }
@@ -57,23 +62,33 @@ public abstract class BaseTraitLayout extends LinearLayout {
         return ((TabletCollectActivity) getContext()).getCRange();
     }
 
-    public EditText getEtCurVal() {
-        return ((TabletCollectActivity) getContext()).getEtCurVal();
+    public TraitObject getTraitObject() {
+        return traitObject;
     }
 
-    public TextWatcher getCvText() {
-        return ((TabletCollectActivity) getContext()).getCvText();
+    protected Map getNewTraits() {
+        return parent.getNewTraits();
     }
+
+    protected boolean existsNewTraits() {
+        return parent.existsNewTraits();
+    }
+
+    public EditText getEtCurVal() { return cell.getEtCurVal(); }
 
     public String getDisplayColor() {
-        return ((TabletCollectActivity) getContext()).getDisplayColor();
+        return parent.getDisplayColor();
     }
 
-    public void updateTrait(String parent, String trait, String value) {
-        ((TabletCollectActivity) getContext()).updateTrait(parent, trait, value);
+    public void updateTrait(String _parent, String trait, String value) {
+        parent.updateTrait(_parent, trait, value);
     }
 
-    public void removeTrait(String parent) {
-        ((TabletCollectActivity) getContext()).removeTrait(parent);
+    public void removeTrait(TraitObject traitObject) {
+        parent.removeTrait(traitObject);
     }
+
+    public boolean validateData() { return true; }
+
+    public void initCurrentVals() { }
 }

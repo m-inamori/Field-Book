@@ -44,7 +44,7 @@ public class BooleanTraitLayout extends BaseTraitLayout {
         // Boolean
         eImg.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                String val = getNewTraits().get(getCurrentTrait().getTrait()).toString();
+                String val = getNewTraits().get(traitObject.getTrait()).toString();
 
                 if (val.equalsIgnoreCase("false")) {
                     val = "true";
@@ -54,7 +54,7 @@ public class BooleanTraitLayout extends BaseTraitLayout {
                     eImg.setImageResource(R.drawable.trait_boolean_false);
                 }
 
-                updateTrait(getCurrentTrait().getTrait(), "boolean", val);
+                updateTrait(traitObject.getTrait(), "boolean", val);
             }
         });
     }
@@ -65,16 +65,16 @@ public class BooleanTraitLayout extends BaseTraitLayout {
         getEtCurVal().setVisibility(EditText.GONE);
         getEtCurVal().setEnabled(false);
 
-        if (!getNewTraits().containsKey(getCurrentTrait().getTrait())) {
-            if (getCurrentTrait().getDefaultValue().trim().equalsIgnoreCase("true")) {
-                updateTrait(getCurrentTrait().getTrait(), "boolean", "true");
+        if (!getNewTraits().containsKey(traitObject.getTrait())) {
+            if (traitObject.getDefaultValue().trim().equalsIgnoreCase("true")) {
+                updateTrait(traitObject.getTrait(), "boolean", "true");
                 eImg.setImageResource(R.drawable.trait_boolean_true);
             } else {
-                updateTrait(getCurrentTrait().getTrait(), "boolean", "false");
+                updateTrait(traitObject.getTrait(), "boolean", "false");
                 eImg.setImageResource(R.drawable.trait_boolean_false);
             }
         } else {
-            String bval = getNewTraits().get(getCurrentTrait().getTrait()).toString();
+            String bval = getNewTraits().get(traitObject.getTrait()).toString();
 
             if (bval.equalsIgnoreCase("false")) {
                 eImg.setImageResource(R.drawable.trait_boolean_false);
@@ -88,11 +88,11 @@ public class BooleanTraitLayout extends BaseTraitLayout {
 
     @Override
     public void deleteTraitListener() {
-        if (getCurrentTrait().getDefaultValue().trim().toLowerCase().equals("true")) {
-            updateTrait(getCurrentTrait().getTrait(), "boolean", "true");
+        if (traitObject.getDefaultValue().trim().toLowerCase().equals("true")) {
+            updateTrait(traitObject.getTrait(), "boolean", "true");
             eImg.setImageResource(R.drawable.trait_boolean_true);
         } else {
-            updateTrait(getCurrentTrait().getTrait(), "boolean", "false");
+            updateTrait(traitObject.getTrait(), "boolean", "false");
             eImg.setImageResource(R.drawable.trait_boolean_false);
         }
     }

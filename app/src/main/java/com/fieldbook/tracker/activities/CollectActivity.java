@@ -319,13 +319,13 @@ public class CollectActivity extends AppCompatActivity {
     private void setNaText() {
         etCurVal.setText("NA");
 
-        traitLayouts.setNaTraitsText(traitBox.getCurrentFormat());
+        traitLayouts.setNaTraitsText();
     }
 
     private void setNaTextBrapiEmptyField() {
         etCurVal.setHint("NA");
 
-        traitLayouts.setNaTraitsText(traitBox.getCurrentFormat());
+        traitLayouts.setNaTraitsText();
     }
 
     private void initToolbars() {
