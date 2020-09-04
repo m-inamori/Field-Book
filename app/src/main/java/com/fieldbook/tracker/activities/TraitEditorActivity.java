@@ -1109,7 +1109,7 @@ public class TraitEditorActivity extends AppCompatActivity {
                         } else {
                             t.setVisible(false);
                         }
-                        if (data.length == 9) {		// old trait data
+                        if (data.length == 9) {     // old trait data
                             t.setBarcode(false);
                         }
                         else {

@@ -968,11 +968,11 @@ public class DataHelper {
     * Get array of column names for query
     */
     public String[] getTraitColumnNames() {
-       return new String[] {
-           "id", "trait", "format", "defaultValue", "minimum", "maximum",
-           "details", "withBarcode", "categories", "isVisible",
-           "realPosition", "external_db_id"
-       };
+        return new String[] {
+            "id", "trait", "format", "defaultValue", "minimum", "maximum",
+            "details", "withBarcode", "categories", "isVisible",
+            "realPosition", "external_db_id"
+        };
     }
 
     /**
@@ -992,14 +992,14 @@ public class DataHelper {
 
                 o.setId(cursor.getString(0));
                 o.setTrait(cursor.getString(1));
-            o.setFormat(cursor.getString(2));
-            o.setDefaultValue(cursor.getString(3));
-            o.setMinimum(cursor.getString(4));
-            o.setMaximum(cursor.getString(5));
-            o.setDetails(cursor.getString(6));
-            o.setBarcode(cursor.getInt(7) > 0);
-            o.setCategories(cursor.getString(8));
-            o.setRealPosition(cursor.getString(10));
+                o.setFormat(cursor.getString(2));
+                o.setDefaultValue(cursor.getString(3));
+                o.setMinimum(cursor.getString(4));
+                o.setMaximum(cursor.getString(5));
+                o.setDetails(cursor.getString(6));
+                o.setBarcode(cursor.getInt(7) > 0);
+                o.setCategories(cursor.getString(8));
+                o.setRealPosition(cursor.getString(10));
 
                 list.add(o);
 

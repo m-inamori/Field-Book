@@ -115,16 +115,15 @@ public class CollectActivity extends AppCompatActivity {
      */
     private EditText etCurVal;
 
-	/**
-	 * we have to distinguish from where we are using barcode
-	 */
+    /**
+     * we have to distinguish from where we are using barcode
+     */
     public enum BarcodeTarget {
         PlotID, Value
     };
     private BarcodeTarget barcodeTarget;
     public void setBarcodeTarget(BarcodeTarget target) { barcodeTarget = target; }
     private boolean isBarcodeTarget(BarcodeTarget target) { return barcodeTarget == target; }
-    
     public final Handler myGuiHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -959,9 +958,11 @@ public class CollectActivity extends AppCompatActivity {
             final String value = result.getContents();
             if (trait.isValidValue(value)) {
                 etCurVal.setText(value);
+                if (traitBox.existsNewTraits() & trait != null)
+                    updateTrait(trait.getTrait(), trait.getFormat(), value);
             }
             else {
-                String message = String.format("%s is invalid data.", value);
+                final String message = String.format("%s is invalid data.", value);
                 Utils.makeToast(getApplicationContext(), message);
             }
         }
@@ -1188,8 +1189,8 @@ public class CollectActivity extends AppCompatActivity {
         BaseTraitLayout getTraitLayout(TraitObject trait) {
             if (trait.usesBarcode())
                 return traitLayouts.getTraitLayout("with_barcode");
-          else
-            return traitLayouts.getTraitLayout(trait.getFormat());
+            else
+                return traitLayouts.getTraitLayout(trait.getFormat());
         }
 
         public Map getNewTraits() {
