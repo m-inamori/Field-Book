@@ -3,14 +3,18 @@ package com.fieldbook.tracker.dialogs;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ToggleButton;
@@ -52,12 +56,11 @@ public class NewTraitDialog extends DialogFragment {
     private EditText categories;
     private TextView defTv;
     private ToggleButton bool;
-    private ToggleButton checkBarcode;
     private LinearLayout defBox;
     private LinearLayout minBox;
     private LinearLayout maxBox;
     private LinearLayout categoryBox;
-    private LinearLayout barcodeBox;
+    private InputMethodBox inputMethodBox;
 
     private TraitFormat traitFormat;
 
@@ -112,13 +115,12 @@ public class NewTraitDialog extends DialogFragment {
         minimum = layout.findViewById(R.id.minimum);
         maximum = layout.findViewById(R.id.maximum);
         details = layout.findViewById(R.id.details);
-        checkBarcode = layout.findViewById(R.id.check_barcode);
         categories = layout.findViewById(R.id.categories);
 
         defBox = layout.findViewById(R.id.defbox);
         minBox = layout.findViewById(R.id.minbox);
         maxBox = layout.findViewById(R.id.maxbox);
-        barcodeBox = layout.findViewById(R.id.barcodebox);
+        inputMethodBox = new InputMethodBox(layout);
         categoryBox = layout.findViewById(R.id.categorybox);
 
         bool = layout.findViewById(R.id.boolBtn);
@@ -194,7 +196,6 @@ public class NewTraitDialog extends DialogFragment {
                     details.setText("");
                     categories.setText("");
                     bool.setChecked(false);
-                    checkBarcode.setChecked(false);
                     currentPosition = position;
                     format.setSelection(currentPosition);
                     prepareFields(currentPosition);
@@ -209,6 +210,7 @@ public class NewTraitDialog extends DialogFragment {
     }
 
     private void onSave() {
+        Log.d("NewTraitDialog", String.valueOf(inputMethodBox.getInputMethod()));
         final int index = format.getSelectedItemPosition();
         final TraitFormat traitFormat = traitFormats.getTraitFormatByIndex(index);
         final String errorMessage = traitFormat.ValidateItems();
@@ -297,7 +299,6 @@ public class NewTraitDialog extends DialogFragment {
         minimum.setText("");
         maximum.setText("");
         details.setText("");
-        checkBarcode.setChecked(false);
         categories.setText("");
 
         edit = false;
@@ -320,7 +321,8 @@ public class NewTraitDialog extends DialogFragment {
         t.setMinimum(minimum.getText().toString());
         t.setMaximum(maximum.getText().toString());
         t.setDetails(details.getText().toString());
-        t.setBarcode(checkBarcode.isChecked());
+        t.setInputMethod(inputMethodBox.getInputMethod());
+        Log.d("NewTraitDialog", String.valueOf(t.getInputMethod()));
         t.setCategories(categories.getText().toString());
         t.setVisible(true);
         t.setRealPosition(String.valueOf(pos));
@@ -338,7 +340,7 @@ public class NewTraitDialog extends DialogFragment {
                 minimum.getText().toString(),
                 maximum.getText().toString(),
                 details.getText().toString(),
-                checkBarcode.isChecked(),
+                inputMethodBox.getInputMethod(),
                 categories.getText().toString());
     }
 
@@ -354,7 +356,7 @@ public class NewTraitDialog extends DialogFragment {
         minimum.setText(traitObject.getMinimum());
         maximum.setText(traitObject.getMaximum());
         details.setText(traitObject.getDetails());
-        checkBarcode.setChecked(traitObject.usesBarcode());
+        inputMethodBox.setInputMethod(traitObject);
         categories.setText(traitObject.getCategories());
     }
 
@@ -372,7 +374,7 @@ public class NewTraitDialog extends DialogFragment {
         maxBox.setVisibility(viewVisibility(traitFormat.maximumBox().getParameterVisibility()));
         bool.setVisibility(viewVisibility(traitFormat.isBooleanVisible()));
         categoryBox.setVisibility(viewVisibility(traitFormat.categoriesBox().getParameterVisibility()));
-        barcodeBox.setVisibility(viewVisibility(traitFormat.isBarcodeBoxVisible()));
+        inputMethodBox.setVisibility(viewVisibility(traitFormat.isInputMethodBoxVisible()));
 
         minimum.setText(traitFormat.minimumBox().getParameterDefaultValue());
         maximum.setText(traitFormat.maximumBox().getParameterDefaultValue());
@@ -412,7 +414,7 @@ public class NewTraitDialog extends DialogFragment {
             return (!minimum.getText().toString().equals(o.getMinimum())) ||
                     (!maximum.getText().toString().equals(o.getMaximum())) ||
                     (!details.getText().toString().equals(o.getDetails())) ||
-                    (checkBarcode.isChecked() != o.usesBarcode()) ||
+                    (inputMethodBox.getInputMethod() != o.getInputMethod()) ||
                     (!categories.getText().toString().equals(o.getCategories()));
 
         } else {
@@ -544,7 +546,7 @@ public class NewTraitDialog extends DialogFragment {
 
         abstract public boolean isBooleanVisible();
         
-        abstract public boolean isBarcodeBoxVisible();
+        abstract public boolean isInputMethodBoxVisible();
 
 
         // whether is the input type each item of this dialog number
@@ -601,7 +603,7 @@ public class NewTraitDialog extends DialogFragment {
             return false;
         }
 
-        public boolean isBarcodeBoxVisible() {
+        public boolean isInputMethodBoxVisible() {
             return false;
         }
 
@@ -623,7 +625,7 @@ public class NewTraitDialog extends DialogFragment {
             return false;
         }
 
-        public boolean isBarcodeBoxVisible() {
+        public boolean isInputMethodBoxVisible() {
             return true;
         }
 
@@ -710,7 +712,7 @@ public class NewTraitDialog extends DialogFragment {
             return false;
         }
 
-        public boolean isBarcodeBoxVisible() {
+        public boolean isInputMethodBoxVisible() {
             return false;
         }
 
@@ -886,7 +888,7 @@ public class NewTraitDialog extends DialogFragment {
             return true;
         }
 
-        public boolean isBarcodeBoxVisible() {
+        public boolean isInputMethodBoxVisible() {
             return false;
         }
 
@@ -927,7 +929,7 @@ public class NewTraitDialog extends DialogFragment {
             return false;
         }
 
-        public boolean isBarcodeBoxVisible() {
+        public boolean isInputMethodBoxVisible() {
             return true;
         }
 
@@ -1116,6 +1118,56 @@ public class NewTraitDialog extends DialogFragment {
                 }
             }
             return 0;
+        }
+    }
+
+    private class InputMethodBox {
+        RadioGroup group;
+        RadioButton radioManual;
+        RadioButton radioBarcode;
+        RadioButton radioBluetooth;
+        View view;
+
+        public InputMethodBox(View layout) {
+            group = (RadioGroup)layout.findViewById(R.id.radio_input_type);
+            radioManual = (RadioButton)layout.findViewById(R.id.radio_manual);
+            radioBarcode = (RadioButton)layout.findViewById(R.id.radio_barcode);
+            radioBluetooth = (RadioButton)layout.findViewById(R.id.radio_bluetooth);
+            view = layout;
+        }
+
+        // want inputMethodBox to be a class
+        public TraitObject.InputMethod getInputMethod() {
+            RadioButton radio = view.findViewById(group.getCheckedRadioButtonId());
+            final String text = radio.getText().toString();
+            Resources res = view.getResources();
+            Log.d("NewTraitDialog", text);
+            Log.d("NewTraitDialog", res.getString(R.string.trait_input_with_barcode));
+            if (res.getString(R.string.trait_input_with_barcode).equals(text)) {
+                return TraitObject.InputMethod.BARCODE;
+            }
+            else if (res.getString(R.string.trait_input_with_bluetooth).equals(text)) {
+                return TraitObject.InputMethod.BLUETOOTH;
+            }
+            else {
+                return TraitObject.InputMethod.MANUAL;
+            }
+        }
+
+        public void setInputMethod(TraitObject t) {
+            if (t.usesBarcode()) {
+                radioBarcode.setChecked(true);
+            }
+            else if (t.usesBluetooth()) {
+                radioBluetooth.setChecked(true);
+            }
+            else {
+                radioManual.setChecked(true);
+            }
+        }
+
+        public void setVisibility(int visibility) {
+            group.setVisibility(visibility);
         }
     }
 }

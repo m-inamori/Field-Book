@@ -19,7 +19,7 @@ public class LayoutCollections {
                 R.id.dateLayout, R.id.diseaseLayout, R.id.locationLayout,
                 R.id.multicatLayout, R.id.numericLayout, R.id.percentLayout,
                 R.id.photoLayout, R.id.textLayout, R.id.labelprintLayout,
-                R.id.TraitWithBarcodeLayout
+                R.id.TraitWithBarcodeLayout, R.id.TraitWithBluetoothLayout
         };
 
         traitLayouts = new ArrayList<>();

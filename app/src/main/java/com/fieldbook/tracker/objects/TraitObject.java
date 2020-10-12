@@ -12,7 +12,7 @@ public class TraitObject {
     private String minimum;
     private String maximum;
     private String details;
-    private Boolean with_barcode;
+    private InputMethod inputMethod;
     private String categories;
     private String realPosition;
     private String id;
@@ -68,13 +68,18 @@ public class TraitObject {
         this.details = details;
     }
 
-    public Boolean usesBarcode() {
-        return with_barcode;
+    public InputMethod getInputMethod() { return inputMethod; }
+    public boolean isManual() { return inputMethod == InputMethod.MANUAL; }
+    public boolean usesBarcode() {
+        return inputMethod == InputMethod.BARCODE;
     }
-
-    public void setBarcode(Boolean b) {
-        with_barcode = b;
+    public boolean usesBluetooth() { return inputMethod == InputMethod.BLUETOOTH; }
+    public void setInputMethod(InputMethod i) { inputMethod = i; }
+    public void setManual() { inputMethod = InputMethod.MANUAL; }
+    public void setBarcode() {
+        inputMethod = InputMethod.BARCODE;
     }
+    public void setBluetooth() { inputMethod = InputMethod.BLUETOOTH; }
 
     public String getCategories() {
         return categories;
@@ -176,5 +181,11 @@ public class TraitObject {
     
     public boolean isNumerical() {
         return format.equals("numeric") || format.equals("percent");
+    }
+
+    public enum InputMethod {
+        MANUAL,
+        BARCODE,
+        BLUETOOTH
     }
 }

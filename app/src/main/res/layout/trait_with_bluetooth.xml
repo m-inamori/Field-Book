@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.fieldbook.tracker.traits.TraitWithBarcodeLayout
+<com.fieldbook.tracker.traits.TraitWithBluetoothLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/TraitWithBarcodeLayout"
+    android:id="@+id/TraitWithBluetoothLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:visibility="gone">
 
     <ImageButton
-        android:id="@+id/inputWithBarcode"
+        android:id="@+id/inputWithBluetooth"
         android:layout_width="65dp"
         android:layout_height="65dp"
         android:layout_gravity="center"
@@ -17,5 +17,10 @@
         android:gravity="center"
         android:padding="10dp"
         android:scaleType="fitXY"
-        android:src="@drawable/ic_with_barcode" />
-</com.fieldbook.tracker.traits.TraitWithBarcodeLayout>
+        android:src="@drawable/ic_with_bluetooth" />
+
+    <ListView
+        android:id="@+id/device_list"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+</com.fieldbook.tracker.traits.TraitWithBluetoothLayout>

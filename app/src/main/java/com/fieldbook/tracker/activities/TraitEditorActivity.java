@@ -234,7 +234,9 @@ public class TraitEditorActivity extends AppCompatActivity {
                 brapiDialogShown = false;
             }
 
-            mAdapter = new TraitAdapter(thisActivity, R.layout.listitem_trait, ConfigActivity.dt.getAllTraitObjects(), traitListener, visibility, brapiDialogShown);
+            mAdapter = new TraitAdapter(thisActivity, R.layout.listitem_trait,
+                                        ConfigActivity.dt.getAllTraitObjects(),
+                                        traitListener, visibility, brapiDialogShown);
 
             traitList.setAdapter(mAdapter);
             traitList.setDropListener(onDrop);
@@ -1109,11 +1111,20 @@ public class TraitEditorActivity extends AppCompatActivity {
                         } else {
                             t.setVisible(false);
                         }
-                        if (data.length == 9) {     // old trait data
-                            t.setBarcode(false);
+                        if (data.length == 9) {     // for compatibility
+                            t.setManual();
+                        }
+                        else if (data[9].toLowerCase().equals("true")) {    // for compatibility
+                            t.setBarcode();
+                        }
+                        else if (data[9].toLowerCase().equals("barcode")) {
+                            t.setBarcode();
+                        }
+                        else if (data[9].toLowerCase().equals("bluetooth")) {
+                            t.setBluetooth();
                         }
                         else {
-                            t.setBarcode(data[9].toLowerCase().equals("true"));
+                            t.setManual();
                         }
                         ConfigActivity.dt.insertTraits(t);
                     }

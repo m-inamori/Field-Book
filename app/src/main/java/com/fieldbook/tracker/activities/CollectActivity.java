@@ -1189,6 +1189,8 @@ public class CollectActivity extends AppCompatActivity {
         BaseTraitLayout getTraitLayout(TraitObject trait) {
             if (trait.usesBarcode())
                 return traitLayouts.getTraitLayout("with_barcode");
+            else if (trait.usesBluetooth())
+                return traitLayouts.getTraitLayout("with_bluetooth");
             else
                 return traitLayouts.getTraitLayout(trait.getFormat());
         }

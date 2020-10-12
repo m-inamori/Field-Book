@@ -365,6 +365,11 @@
                 android:layout_height="wrap_content" />
 
             <include
+                layout="@layout/trait_with_bluetooth"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content" />
+
+            <include
                 layout="@layout/trait_labelprint"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content" />

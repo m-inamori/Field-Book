@@ -44,6 +44,8 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.swagger.client.model.Trait;
+
 /**
  * All database related functions are here
  */
@@ -59,7 +61,7 @@ public class DataHelper {
     private static final String PLOT_VALUES = "plot_values";
     private static final String INSERTTRAITS = "insert into "
             + TRAITS
-            + "(external_db_id, trait_data_source, trait, format, defaultValue, minimum, maximum, details, withBarcode, categories, "
+            + "(external_db_id, trait_data_source, trait, format, defaultValue, minimum, maximum, details, inputMethod, categories, "
             + "isVisible, realPosition) values (?,?,?,?,?,?,?,?,?,?,?,?)";
     private static final String INSERTUSERTRAITS = "insert into " + USER_TRAITS
             + "(rid, parent, trait, userValue, timeTaken, person, location, rep, notes, exp_id, observation_db_id, last_synced_time) values (?,?,?,?,?,?,?,?,?,?,?,?)";
@@ -970,7 +972,7 @@ public class DataHelper {
     public String[] getTraitColumnNames() {
         return new String[] {
             "id", "trait", "format", "defaultValue", "minimum", "maximum",
-            "details", "withBarcode", "categories", "isVisible",
+            "details", "inputMethod", "categories", "isVisible",
             "realPosition", "external_db_id"
         };
     }
@@ -989,16 +991,7 @@ public class DataHelper {
         if (cursor.moveToFirst()) {
             do {
                 TraitObject o = new TraitObject();
-
-                o.setId(cursor.getString(0));
-                o.setTrait(cursor.getString(1));
-                o.setFormat(cursor.getString(2));
-                o.setDefaultValue(cursor.getString(3));
-                o.setMinimum(cursor.getString(4));
-                o.setMaximum(cursor.getString(5));
-                o.setDetails(cursor.getString(6));
-                o.setBarcode(cursor.getInt(7) > 0);
-                o.setCategories(cursor.getString(8));
+                setCursorIntoTraitObject(o, cursor);
                 o.setRealPosition(cursor.getString(10));
 
                 list.add(o);
@@ -1048,7 +1041,7 @@ public class DataHelper {
         data.setMinimum("");
         data.setMaximum("");
         data.setDetails("");
-        data.setBarcode(false);
+        data.setManual();
         data.setCategories("");
 
         Cursor cursor = db.query(TRAITS, getTraitColumnNames(),
@@ -1057,15 +1050,7 @@ public class DataHelper {
         );
 
         if (cursor.moveToFirst()) {
-            data.setId(cursor.getString(0));
-            data.setTrait(cursor.getString(1));
-            data.setFormat(cursor.getString(2));
-            data.setDefaultValue(cursor.getString(3));
-            data.setMinimum(cursor.getString(4));
-            data.setMaximum(cursor.getString(5));
-            data.setDetails(cursor.getString(6));
-            data.setBarcode(cursor.getInt(7) > 0);
-            data.setCategories(cursor.getString(8));
+            setCursorIntoTraitObject(data, cursor);
             data.setExternalDbId(cursor.getString(11));
         }
 
@@ -1074,6 +1059,18 @@ public class DataHelper {
         }
 
         return data;
+    }
+
+    private void setCursorIntoTraitObject(TraitObject o, Cursor cursor) {
+        o.setId(cursor.getString(0));
+        o.setTrait(cursor.getString(1));
+        o.setFormat(cursor.getString(2));
+        o.setDefaultValue(cursor.getString(3));
+        o.setMinimum(cursor.getString(4));
+        o.setMaximum(cursor.getString(5));
+        o.setDetails(cursor.getString(6));
+        setTraitInputMethod(o, cursor.getInt(7));
+        o.setCategories(cursor.getString(8));
     }
 
     /**
@@ -1642,8 +1639,15 @@ public class DataHelper {
      * V2 - Edit existing trait
      */
     public long editTraits(String id, String trait, String format, String defaultValue,
-                           String minimum, String maximum, String details, boolean withBarcode, String categories) {
+                           String minimum, String maximum, String details,
+                           TraitObject.InputMethod inputMethod, String categories) {
         try {
+            // for old version
+            List traitFields = Arrays.asList(getTraitColumns());
+            if (!traitFields.contains("inputMethod")) {
+                db.execSQL("ALTER TABLE traits ADD COLUMN inputMethod INT");
+            }
+
             ContentValues c = new ContentValues();
             c.put("trait", trait);
             c.put("format", format);
@@ -1651,7 +1655,7 @@ public class DataHelper {
             c.put("minimum", minimum);
             c.put("maximum", maximum);
             c.put("details", details);
-            c.put("withBarcode", withBarcode);
+            c.put("inputMethod", convertTraitInputMethodToInt(inputMethod));
             c.put("categories", categories);
 
             return db.update(TRAITS, c, "id = ?", new String[]{id});
@@ -2076,7 +2080,7 @@ public class DataHelper {
                     + "(id INTEGER PRIMARY KEY, range TEXT, plot TEXT, entry TEXT, plot_id TEXT, pedigree TEXT)");
             db.execSQL("CREATE TABLE "
                     + TRAITS
-                    + "(id INTEGER PRIMARY KEY, external_db_id TEXT, trait_data_source TEXT, trait TEXT, format TEXT, defaultValue TEXT, minimum TEXT, maximum TEXT, details TEXT, withBarcode BOOLEAN, categories TEXT, isVisible TEXT, realPosition int)");
+                    + "(id INTEGER PRIMARY KEY, external_db_id TEXT, trait_data_source TEXT, trait TEXT, format TEXT, defaultValue TEXT, minimum TEXT, maximum TEXT, details TEXT, inputMethod int, categories TEXT, isVisible TEXT, realPosition int)");
             db.execSQL("CREATE TABLE "
                     + USER_TRAITS
                     + "(id INTEGER PRIMARY KEY, rid TEXT, parent TEXT, trait TEXT, userValue TEXT, timeTaken TEXT, person TEXT, location TEXT, rep TEXT, notes TEXT, exp_id TEXT, observation_db_id TEXT, last_synced_time TEXT)");
@@ -2217,6 +2221,28 @@ public class DataHelper {
                 // add withBarcode column into traits table
                 db.execSQL("ALTER TABLE traits ADD COLUMN withBarcode BOOLEAN");
             }
+        }
+    }
+
+    void setTraitInputMethod(TraitObject o, int i) {
+        Log.d("DataHelper", "setTraitInputMethod " + String.valueOf(i));
+        if (i == 1) {
+           o.setBarcode();
+        }
+        else if (i == 2) {
+            o.setBluetooth();
+        }
+        else {
+            o.setManual();
+        }
+    }
+
+    int convertTraitInputMethodToInt(TraitObject.InputMethod inputMethod) {
+        switch (inputMethod) {
+            case MANUAL: return 0;
+            case BARCODE: return 1;
+            case BLUETOOTH: return 2;
+            default: return 0;
         }
     }
 }
