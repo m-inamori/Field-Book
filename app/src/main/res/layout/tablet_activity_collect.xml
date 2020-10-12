@@ -213,7 +213,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#ffffff"
-            android:padding="5dp">
+            android:padding="2dp">
 
             <TableRow
                 android:padding="1dp"
@@ -222,18 +222,14 @@
                 <include
                     layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder1"
+                    android:layout_margin="10dp"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content" />
 
                 <include
                     layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder2"
-                    android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
-
-                <include
-                    layout="@layout/trait_layout_collection"
-                    android:id="@+id/traitHolder3"
+                    android:layout_margin="10dp"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent" />
 
@@ -243,19 +239,87 @@
 
                 <include
                     layout="@layout/trait_layout_collection"
-                    android:id="@+id/traitHolder4"
+                    android:id="@+id/traitHolder3"
+                    android:layout_margin="10dp"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent" />
 
                 <include
                     layout="@layout/trait_layout_collection"
+                    android:id="@+id/traitHolder4"
+                    android:layout_margin="10dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent" />
+
+            </TableRow>
+
+            <TableRow>
+
+                <include
+                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder5"
+                    android:layout_margin="10dp"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent" />
 
                 <include
                     layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder6"
+                    android:layout_margin="10dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent" />
+
+            </TableRow>
+
+            <TableRow>
+
+                <include
+                    layout="@layout/trait_layout_collection"
+                    android:id="@+id/traitHolder7"
+                    android:layout_margin="10dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent" />
+
+                <include
+                    layout="@layout/trait_layout_collection"
+                    android:id="@+id/traitHolder8"
+                    android:layout_margin="10dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent" />
+
+            </TableRow>
+
+            <TableRow>
+
+                <include
+                    layout="@layout/trait_layout_collection"
+                    android:id="@+id/traitHolder9"
+                    android:layout_margin="10dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent" />
+
+                <include
+                    layout="@layout/trait_layout_collection"
+                    android:id="@+id/traitHolder10"
+                    android:layout_margin="10dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent" />
+
+            </TableRow>
+
+            <TableRow>
+
+                <include
+                    layout="@layout/trait_layout_collection"
+                    android:id="@+id/traitHolder11"
+                    android:layout_margin="10dp"
+                    android:layout_width="fill_parent"
+                    android:layout_height="fill_parent" />
+
+                <include
+                    layout="@layout/trait_layout_collection"
+                    android:id="@+id/traitHolder12"
+                    android:layout_margin="10dp"
                     android:layout_width="fill_parent"
                     android:layout_height="fill_parent" />
 

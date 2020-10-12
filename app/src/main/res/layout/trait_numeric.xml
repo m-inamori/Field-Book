@@ -16,7 +16,7 @@
         android:maxLines="1"
         android:text="@string/main_trait_details"
         android:textColor="#000000"
-        android:textSize="@dimen/text_size_small"
+        android:textSize="@dimen/text_size_medium"
         android:textStyle="bold"
         app:layout_constraintBottom_toTopOf="@id/rangeLeft"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -34,7 +34,7 @@
         android:maxLines="1"
         android:text=""
         android:textColor="#000000"
-        android:textSize="@dimen/text_size_xlarge"
+        android:textSize="@dimen/text_size_small"
         android:textStyle="bold"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/svTraitContainer"
@@ -58,7 +58,7 @@
             android:minWidth="@dimen/button_width_numeric"
             android:text=";"
             android:textColor="#000000"
-            android:textSize="@dimen/text_size_large"
+            android:textSize="@dimen/text_size_medium"
             android:textStyle="bold" />
 
         <Button

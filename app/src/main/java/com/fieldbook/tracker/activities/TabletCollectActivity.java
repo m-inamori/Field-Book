@@ -230,7 +230,9 @@ public class TabletCollectActivity extends AppCompatActivity {
         // prepare TraitLayout in the cells of the TableLayout
         int[] holderIDs = {
                 R.id.traitHolder1, R.id.traitHolder2, R.id.traitHolder3,
-                R.id.traitHolder4, R.id.traitHolder5, R.id.traitHolder6
+                R.id.traitHolder4, R.id.traitHolder5, R.id.traitHolder6,
+                R.id.traitHolder7, R.id.traitHolder8, R.id.traitHolder9,
+                R.id.traitHolder10, R.id.traitHolder11, R.id.traitHolder12
         };
         String[] traits = dt.getVisibleTrait();
         for (int i = 0; i < min(holderIDs.length, traits.length); ++i) {
@@ -242,8 +244,8 @@ public class TabletCollectActivity extends AppCompatActivity {
         for (int i = 0; i < traitLayoutTable.size(); ++i) {
             if (i == traits.length)
                 break;
-            TraitObject tobj = dt.getDetail(traits[i]);
-            traitLayoutTable.get(i).setTraitObject(tobj);
+            TraitObject traitObject = dt.getDetail(traits[i]);
+            traitLayoutTable.get(i).setTraitObject(traitObject);
         }
         // hide residual layout
         for (int i = traitLayoutTable.size(); i < holderIDs.length; ++i) {
@@ -522,7 +524,7 @@ public class TabletCollectActivity extends AppCompatActivity {
      */
     public void updateTrait(String parent, String trait, String value) {
 
-        if (rangeBox.isEmpty()) {
+        if (rangeBox == null || rangeBox.isEmpty()) {
             return;
         }
 

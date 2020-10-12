@@ -122,11 +122,13 @@ public class CategoricalTraitLayout extends BaseTraitLayout {
 
         String[] cat = traitObject.getCategories().split("/");
 
+        /*
         for(Button button : buttonArray) {
             button.setTextSize(20);
             button.setMinWidth(100);
             button.setMinimumWidth(100);
         }
+         */
 
         // Hide unused buttons
         for (int i = cat.length; i < buttonArray.size(); i++) {

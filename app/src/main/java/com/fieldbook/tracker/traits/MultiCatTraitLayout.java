@@ -85,7 +85,6 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
                 public void onBindViewHolder(MulticatTraitViewHolder holder, int position) {
                     holder.bindTo();
                     holder.mButton.setText(cat[position]);
-                    holder.mButton.setTextSize(20);
                     holder.mButton.setOnClickListener(createClickListener(holder.mButton,position));
                     if (hasCategory(cat[position], getEtCurVal().getText().toString()))
                         pressOnButton(holder.mButton);

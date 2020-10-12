@@ -78,11 +78,13 @@ public class NumericTraitLayout extends BaseTraitLayout {
             }
         });
 
+        /*
         for (Button numButton : numberButtons.values()) {
-            numButton.setMinWidth(150);
-            numButton.setMinimumWidth(150);
-            numButton.setTextSize(30);
+            numButton.setMinWidth(80);
+            numButton.setMinimumWidth(80);
+            numButton.setTextSize(18);
         }
+         */
     }
 
     @Override
