@@ -1,6 +1,8 @@
 package com.fieldbook.tracker.traits;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.Button;
@@ -8,6 +10,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.fieldbook.tracker.R;
+
+import static java.lang.Math.min;
 
 public class CounterTraitLayout extends BaseTraitLayout {
 
@@ -83,8 +87,29 @@ public class CounterTraitLayout extends BaseTraitLayout {
     }
 
     @Override
+    public boolean setValue(String value) {
+        try {
+            final int counter = Integer.parseInt(value);
+            if (counter < 0)
+                return false;
+
+            counterTv.setText(value);
+            updateTrait(traitObject.getTrait(), "counter", value);
+            return true;
+        }
+        catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    @Override
     public void deleteTraitListener() {
         removeTrait(traitObject);
         counterTv.setText("0");
+    }
+
+    @Override
+    public boolean isEntered() {
+        return true;
     }
 }

@@ -16,6 +16,7 @@ import android.os.AsyncTask;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.Html;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -52,7 +53,7 @@ public class PhotoTraitLayout extends BaseTraitLayout {
     private ArrayList<Drawable> drawables;
     private Gallery photo;
     private GalleryImageAdapter photoAdapter;
-    private String mCurrentPhotoPath;
+    private String mCurrentPhotoPath = null;
     private ArrayList<String> photoLocation;
     // Creates a new thread to do importing
     private Runnable importRunnable = new Runnable() {
@@ -72,6 +73,8 @@ public class PhotoTraitLayout extends BaseTraitLayout {
     public PhotoTraitLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }
+
+    public boolean isPhotoTaken() { return mCurrentPhotoPath != null; }
 
     @Override
     public void setNaTraitsText() {
@@ -253,8 +256,6 @@ public class PhotoTraitLayout extends BaseTraitLayout {
             if (getCRange() == null || getCRange().plot_id.length() == 0) {
                 return;
             }
-
-            Log.d("Field Book", trait + " " + value);
 
             if (newTraits.containsKey(parent))
                 newTraits.remove(parent);
@@ -444,5 +445,10 @@ public class PhotoTraitLayout extends BaseTraitLayout {
                 Utils.makeToast(getContext(),getContext().getString(R.string.trait_error_hardware_missing));
             }
         }
+    }
+
+    @Override
+    public boolean isEntered() {
+        return !TextUtils.isEmpty(mCurrentPhotoPath);
     }
 }

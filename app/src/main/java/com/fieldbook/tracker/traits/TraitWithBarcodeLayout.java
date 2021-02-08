@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.EditText;
@@ -74,5 +75,10 @@ public class TraitWithBarcodeLayout extends BaseTraitLayout {
     @Override
     public void deleteTraitListener() {
         ((CollectActivity) getContext()).removeTrait();
+    }
+
+    @Override
+    public boolean isEntered() {
+        return !TextUtils.isEmpty(getEtCurVal().getText().toString());
     }
 }

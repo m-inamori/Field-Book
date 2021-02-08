@@ -51,7 +51,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 
 import com.fieldbook.tracker.preferences.GeneralKeys;
-import com.fieldbook.tracker.traits.LayoutCollections;
+import com.fieldbook.tracker.traits.LayoutCollection;
 import com.fieldbook.tracker.R;
 import com.fieldbook.tracker.brapi.Observation;
 import com.fieldbook.tracker.adapters.InfoBarAdapter;
@@ -98,7 +98,7 @@ public class CollectActivity extends AppCompatActivity {
     /**
      * Trait layouts
      */
-    LayoutCollections traitLayouts;
+    LayoutCollection traitLayouts;
     private SharedPreferences ep;
     private String inputPlotId = "";
     private AlertDialog goToId;
@@ -257,7 +257,7 @@ public class CollectActivity extends AppCompatActivity {
 
         infoBarAdapter = new InfoBarAdapter(this, ep.getInt(GeneralKeys.INFOBAR_NUMBER, 2), (RecyclerView) findViewById(R.id.selectorList));
 
-        traitLayouts = new LayoutCollections(this);
+        traitLayouts = new LayoutCollection(this);
         traitBox = new TraitBox(this);
         rangeBox = new RangeBox(this);
         initCurrentVals();

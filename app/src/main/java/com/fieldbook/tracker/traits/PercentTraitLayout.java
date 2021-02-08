@@ -2,6 +2,7 @@ package com.fieldbook.tracker.traits;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.widget.EditText;
 import android.widget.SeekBar;
@@ -65,12 +66,9 @@ public class PercentTraitLayout extends BaseTraitLayout {
 
     public void loadLayout() {
 
-        // あとで復活させる
-        /*
         getEtCurVal().setHint("");
         getEtCurVal().setVisibility(EditText.VISIBLE);
-        getEtCurVal().removeTextChangedListener(getCvText());
-         */
+//        getEtCurVal().removeTextChangedListener(getCvText());
 
         if (getNewTraits().containsKey(traitObject.getTrait())
                 && !getNewTraits().get(traitObject.getTrait()).toString().equals("NA")) {
@@ -132,5 +130,10 @@ public class PercentTraitLayout extends BaseTraitLayout {
         seekBar.setOnSeekBarChangeListener(null);
         seekBar.setProgress(Integer.parseInt(getDefaultValue()));
         seekBar.setOnSeekBarChangeListener(seekListener);
+    }
+
+    @Override
+    public boolean isEntered() {
+        return true;
     }
 }

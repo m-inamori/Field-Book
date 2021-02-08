@@ -159,8 +159,10 @@ public class TraitObject {
         }
     }
     
-    public boolean isValidFormat(final String s) {
+    public boolean isValidFormat(String s) {
 		if (isNumerical()) {
+		    if (format.equals("percent") && s.charAt(s.length()-1) == '%')
+		        s = s.substring(0, s.length() - 1);
 			try {
 				final double v = Double.parseDouble(s);
 				return true;
@@ -177,4 +179,6 @@ public class TraitObject {
     public boolean isNumerical() {
 		return format.equals("numeric") || format.equals("percent");
 	}
+	public boolean isText() { return format.equals("text"); }
+	public boolean isCategorical() { return format.equals("categorical") || format.equals("multicat"); }
 }

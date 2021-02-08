@@ -3,7 +3,10 @@ package com.fieldbook.tracker.traits;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +26,8 @@ import com.google.android.flexbox.FlexboxLayoutManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import static java.lang.Math.min;
 
 public class MultiCatTraitLayout extends BaseTraitLayout {
 
@@ -137,7 +142,7 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
     }
 
     // if there are wrong categories, remove them
-    // I want to remove them when moveing the page,
+    // I want to remove them when moving the page,
     // but it is not so easy
     private String normalizeCategory() {
         final String[] categories = getCategoryList();
@@ -218,6 +223,36 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
     public void deleteTraitListener() {
         ((TabletCollectActivity) getContext()).removeTrait();
         loadLayout();
+    }
+
+    @Override
+    public boolean setValue(String value) {
+        try {
+            final int i = Integer.parseInt(value);
+            final boolean b = i < numberOfCategories();
+            if (b)
+                ((Button)gridMultiCat.getChildAt(i)).performClick();
+            return b;
+        }
+        catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean isEntered() {
+        final int n = numberOfCategories();
+        for (int i = 0; i < n; ++i) {
+            Button button = (Button)gridMultiCat.getChildAt(i);
+            if (button.getCurrentTextColor() != Color.BLACK)    // selected
+                return true;
+        }
+        return false;
+    }
+
+    public int numberOfCategories() {
+        final String[] cat = traitObject.getCategories().split("/");
+        return cat.length;
     }
 }
 

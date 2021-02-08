@@ -1,7 +1,9 @@
 package com.fieldbook.tracker.traits;
 
 import android.content.Context;
+import android.net.UrlQuerySanitizer;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -44,17 +46,20 @@ public class BooleanTraitLayout extends BaseTraitLayout {
         // Boolean
         eImg.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
-                String val = getNewTraits().get(traitObject.getTrait()).toString();
+                final String value = getNewTraits().get(traitObject.getTrait()).toString();
+                Log.d("onClick", value);
 
-                if (val.equalsIgnoreCase("false")) {
-                    val = "true";
+                String  new_value;
+                if (value.equalsIgnoreCase("false")) {
+                    new_value = "true";
                     eImg.setImageResource(R.drawable.trait_boolean_true);
                 } else {
-                    val = "false";
+                    new_value = "false";
                     eImg.setImageResource(R.drawable.trait_boolean_false);
                 }
 
-                updateTrait(traitObject.getTrait(), "boolean", val);
+                updateTrait(traitObject.getTrait(), "boolean", new_value);
+                getNewTraits().put(traitObject.getTrait(), new_value);
             }
         });
     }
@@ -95,5 +100,25 @@ public class BooleanTraitLayout extends BaseTraitLayout {
             updateTrait(traitObject.getTrait(), "boolean", "false");
             eImg.setImageResource(R.drawable.trait_boolean_false);
         }
+    }
+
+    @Override
+    public boolean isEntered() {
+        return true;
+    }
+
+    @Override
+    public boolean setValue(String value) {
+        if (value.equalsIgnoreCase("false")) {
+            eImg.setImageResource(R.drawable.trait_boolean_false);
+        } else if(value.equalsIgnoreCase("true")) {
+            eImg.setImageResource(R.drawable.trait_boolean_true);
+        }
+        else {
+            return false;
+        }
+        updateTrait(traitObject.getTrait(), "boolean", value.toLowerCase());
+        getNewTraits().put(traitObject.getTrait(), value.toLowerCase());
+        return true;
     }
 }

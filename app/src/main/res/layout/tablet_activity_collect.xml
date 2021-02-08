@@ -199,15 +199,35 @@
         app:layout_constraintTop_toBottomOf="@id/selectorList"
         app:layout_constraintHeight_percent="0.13" />
 
+
+    <TextView
+        android:id="@+id/tvCurVal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:gravity="center"
+        android:singleLine="true"
+        android:text=""
+        android:textColor="#000000"
+        android:textSize="@dimen/text_size_xlarge"
+        android:textStyle="bold"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@id/svTraitContainer"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/valuesPlotRangeHolder">
+    </TextView>
+
     <ScrollView
         android:id="@+id/svTraitContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:isScrollContainer="true"
         app:layout_constraintBottom_toTopOf="@id/toolbarBottom"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/valuesPlotRangeHolder">
+        app:layout_constraintTop_toBottomOf="@id/tvCurVal">
 
         <TableLayout
             android:layout_width="match_parent"
@@ -216,112 +236,112 @@
             android:padding="2dp">
 
             <TableRow
-                android:padding="1dp"
-                android:layout_marginTop="10dp">
+                android:layout_marginTop="10dp"
+                android:padding="1dp">
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder1"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp" />
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder2"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
             </TableRow>
 
             <TableRow>
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder3"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder4"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
             </TableRow>
 
             <TableRow>
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder5"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder6"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
             </TableRow>
 
             <TableRow>
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder7"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder8"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
             </TableRow>
 
             <TableRow>
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder9"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder10"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
             </TableRow>
 
             <TableRow>
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder11"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
                 <include
-                    layout="@layout/trait_layout_collection"
                     android:id="@+id/traitHolder12"
-                    android:layout_margin="10dp"
+                    layout="@layout/trait_layout_collection"
                     android:layout_width="fill_parent"
-                    android:layout_height="fill_parent" />
+                    android:layout_height="fill_parent"
+                    android:layout_margin="10dp" />
 
             </TableRow>
         </TableLayout>

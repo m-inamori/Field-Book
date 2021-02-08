@@ -3,6 +3,7 @@ package com.fieldbook.tracker.traits;
 import android.content.Context;
 import android.graphics.Color;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -125,12 +126,8 @@ public class DiseaseRatingTraitLayout extends BaseTraitLayout {
     @Override
     public void loadLayout() {
         // clear NA hint
-        // あとで復活させる
-        /*
         getEtCurVal().setHint("");
-        getEtCurVal().removeTextChangedListener(getCvText());
         getEtCurVal().setVisibility(EditText.VISIBLE);
-         */
 
         if (!getNewTraits().containsKey(traitObject.getTrait())) {
             getEtCurVal().setText("");
@@ -168,12 +165,15 @@ public class DiseaseRatingTraitLayout extends BaseTraitLayout {
             } else {
                 v = rustButtons.get(view.getId()).getText().toString();
             }
+            Log.d("onClick", v);
 
             if (getVisibility() == View.VISIBLE) {
                 final String value = getEtCurVal().getText().toString();
+                Log.d("value", value);
                 if (value.length() > 0 && !v.equals("/")
                             && !value.substring(value.length() - 1).equals("/")) {
                     String lastChar = value.substring(value.length() - 1);
+                    Log.d("lastChar", lastChar);
                     if (!lastChar.matches("^[a-zA-Z]*$")) {
                         v = ":" + v;
                     }
@@ -188,5 +188,17 @@ public class DiseaseRatingTraitLayout extends BaseTraitLayout {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean isEntered() {
+        return true;
+    }
+
+    @Override
+    public boolean setValue(String value) {
+        getEtCurVal().setText(value);
+        updateTrait(traitObject.getTrait(), traitObject.getFormat(), value);
+        return true;
     }
 }

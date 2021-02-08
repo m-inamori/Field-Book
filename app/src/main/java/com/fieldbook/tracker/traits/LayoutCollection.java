@@ -1,6 +1,7 @@
 package com.fieldbook.tracker.traits;
 
 import android.app.Activity;
+import android.graphics.LinearGradient;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -21,7 +22,7 @@ import java.util.Map;
 
 import static com.fieldbook.tracker.activities.ConfigActivity.dt;
 
-public class LayoutCollections {
+public class LayoutCollection {
     private ArrayList<BaseTraitLayout> traitLayouts;
     private TabletCollectActivity parent;
     private TextView traitName;
@@ -39,7 +40,7 @@ public class LayoutCollections {
             R.id.TraitWithBarcodeLayout
     };
 
-    public LayoutCollections(Activity _activity) {
+    public LayoutCollection(Activity _activity) {
 
         parent = (TabletCollectActivity)_activity;
         traitLayouts = new ArrayList<>();
@@ -51,7 +52,7 @@ public class LayoutCollections {
         }
     }
 
-    public LayoutCollections(Activity _activity, View _view) {
+    public LayoutCollection(Activity _activity, View _view) {
         parent = (TabletCollectActivity)_activity;
         setWidgets(_view);
         traitLayouts = new ArrayList<>();
@@ -82,7 +83,6 @@ public class LayoutCollections {
         hideLayouts();
         BaseTraitLayout currentLayout = getTraitLayout(traitObject.getFormat());
         for(BaseTraitLayout layout : traitLayouts) {
-            Log.d("LayoutCollections", String.valueOf(etCurVal != null));
             if (layout == currentLayout) {
                 layout.setTraitObject(traitObject);
                 layout.setVisibility(View.VISIBLE);
@@ -96,14 +96,24 @@ public class LayoutCollections {
     public BaseTraitLayout getTraitLayout(final String format) {
         for (BaseTraitLayout layout : traitLayouts) {
             if (layout.isTraitType(format)) {
+                Log.d("getTraitLayout", format);
                 return layout;
             }
         }
         return getTraitLayout("text");
     }
 
+    public boolean setValue(String value) {
+        BaseTraitLayout currentLayout = getTraitLayout(traitObject.getFormat());
+        return currentLayout.setValue(value);
+    }
+
+    public boolean isEntered() {
+        BaseTraitLayout layout = getCurrentLayout();
+        return layout.isEntered();
+    }
+
     public BaseTraitLayout getCurrentLayout() {
-        Log.d("LayoutCollections", String.valueOf(traitObject != null));
         return getTraitLayout(traitObject.getFormat());
     }
 

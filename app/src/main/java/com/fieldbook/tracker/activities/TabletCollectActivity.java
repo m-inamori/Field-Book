@@ -11,8 +11,13 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.res.Configuration;
+import android.graphics.PostProcessor;
 import android.graphics.Typeface;
+import android.media.AudioAttributes;
+import android.media.AudioFormat;
+import android.media.AudioTrack;
 import android.media.MediaPlayer;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -22,7 +27,10 @@ import androidx.core.content.FileProvider;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.Toolbar;
 
+import android.os.strictmode.CleartextNetworkViolation;
+import android.provider.MediaStore;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -36,15 +44,11 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.MimeTypeMap;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemSelectedListener;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.LinearLayout.LayoutParams;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
@@ -52,7 +56,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 
 import com.fieldbook.tracker.preferences.GeneralKeys;
-import com.fieldbook.tracker.traits.LayoutCollections;
+import com.fieldbook.tracker.traits.LayoutCollection;
 import com.fieldbook.tracker.R;
 import com.fieldbook.tracker.brapi.Observation;
 import com.fieldbook.tracker.adapters.InfoBarAdapter;
@@ -68,20 +72,26 @@ import com.getkeepsafe.taptargetview.TapTarget;
 import com.getkeepsafe.taptargetview.TapTargetSequence;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+import com.mikepenz.iconics.utils.IconicsUtils;
 
 import org.threeten.bp.OffsetDateTime;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.channels.NonWritableChannelException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static com.fieldbook.tracker.activities.ConfigActivity.dt;
 import static java.lang.Math.min;
-
-import android.os.Environment;
 
 /**
  * All main screen logic resides here
@@ -103,21 +113,37 @@ public class TabletCollectActivity extends AppCompatActivity {
     /**
      * Trait layouts
      */
-    ArrayList<LayoutCollections> traitLayoutTable = new ArrayList<LayoutCollections>();
+    ArrayList<LayoutCollection> traitLayoutTable = new ArrayList<LayoutCollection>();
     private SharedPreferences ep;
     private String inputPlotId = "";
     private AlertDialog goToId;
     private Object lock;
     private Map newTraits = new HashMap();  // { trait name: value }
-    private LayoutCollections currentLayout;
+    private LayoutCollection currentLayout;
     private TraitObject currentTrait;
     private String[] prefixTraits;
+    private BarcodeKeyParser barcodeKeyParser = new BarcodeKeyParser();
     /**
      * Main screen elements
      */
     private Menu systemMenu;
     private InfoBarAdapter infoBarAdapter;
     private RangeBox rangeBox;
+    /**
+     * Trait-related elements
+     */
+    private TextView tvCurVal;
+
+    /**
+     * Traits
+     */
+    private String[] all_traits;
+    private String[] traits;
+
+    /**
+     * Sound
+     */
+    SoundPlayer soundPlayer;
 
     /**
      * we have to distinguish from where we are using barcode
@@ -156,6 +182,7 @@ public class TabletCollectActivity extends AppCompatActivity {
         }
     };
 
+    private TextWatcher cvText;
     private InputMethodManager imm;
     private Boolean dataLocked = false;
 
@@ -194,11 +221,48 @@ public class TabletCollectActivity extends AppCompatActivity {
         ConfigActivity.dt.open();
 
         loadScreen();
+
+        soundPlayer = new SoundPlayer();
     }
 
     private void initCurrentVals() {
+        // Current value display
+        tvCurVal = findViewById(R.id.tvCurVal);
+        barcodeKeyParser.clear();
+        Log.d("TabletCollectActivity", tvCurVal.getText().toString());
+        
+        tvCurVal.setOnEditorActionListener(new OnEditorActionListener() {
+            public boolean onEditorAction(TextView exampleView, int actionId, KeyEvent event) {
+                Log.d("onEditorAction", tvCurVal.getText().toString() + " : xxx");
+                if (actionId == EditorInfo.IME_NULL && event.getAction() == KeyEvent.ACTION_DOWN) {
+                    rangeBox.rightClick();
+                    return true;
+                }
+
+                return false;
+            }
+        });
+
         // Validates the text entered for text format
-        for (LayoutCollections layout : traitLayoutTable) {
+        cvText = new TextWatcher() {
+            public void afterTextChanged(Editable en) {
+                Log.d("TextWatcher", en.toString());
+            }
+
+            public void beforeTextChanged(CharSequence arg0, int arg1,
+                                          int arg2, int arg3) {
+            }
+
+            public void onTextChanged(CharSequence arg0, int arg1, int arg2,
+                                      int arg3) {
+            }
+        };
+
+        tvCurVal.setRawInputType(InputType.TYPE_CLASS_TEXT);
+        tvCurVal.setTextIsSelectable(true);
+
+        // Validates the text entered for text format
+        for (LayoutCollection layout : traitLayoutTable) {
             layout.initCurrentVals();
         }
     }
@@ -223,7 +287,7 @@ public class TabletCollectActivity extends AppCompatActivity {
         thisActivity = this;
 
         // Keyboard service manager
-        setIMM();
+         setIMM();
 
         infoBarAdapter = new InfoBarAdapter(this, ep.getInt(GeneralKeys.INFOBAR_NUMBER, 2), (RecyclerView) findViewById(R.id.selectorList));
 
@@ -234,10 +298,12 @@ public class TabletCollectActivity extends AppCompatActivity {
                 R.id.traitHolder7, R.id.traitHolder8, R.id.traitHolder9,
                 R.id.traitHolder10, R.id.traitHolder11, R.id.traitHolder12
         };
-        String[] traits = dt.getVisibleTrait();
+        traits = dt.getVisibleTrait();
+        all_traits = dt.getAllTraits();
+        Log.d("loadScreen", "aaaaaaaa");
         for (int i = 0; i < min(holderIDs.length, traits.length); ++i) {
             LinearLayout layout = findViewById(holderIDs[i]);
-            LayoutCollections collection = new LayoutCollections(this, layout);
+            LayoutCollection collection = new LayoutCollection(this, layout);
             traitLayoutTable.add(collection);
         }
         // set TraitObject into TraitLayout
@@ -265,28 +331,17 @@ public class TabletCollectActivity extends AppCompatActivity {
         initWidgets(true);
     }
 
-    public void playSound(String sound) {
-        try {
-            int resID = getResources().getIdentifier(sound, "raw", getPackageName());
-            MediaPlayer chimePlayer = MediaPlayer.create(TabletCollectActivity.this, resID);
-            chimePlayer.start();
-
-            chimePlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                public void onCompletion(MediaPlayer mp) {
-                    mp.release();
-                }
-            });
-        } catch (Exception ignore) {
-        }
+    public void playSound(String scene) {
+        soundPlayer.play(scene);
     }
 
     private void setNaText() {
-        for(LayoutCollections traitLayouts : traitLayoutTable)
+        for(LayoutCollection traitLayouts : traitLayoutTable)
             traitLayouts.setNaTraitsText();
     }
 
     private void setNaTextBrapiEmptyField() {
-        for(LayoutCollections traitLayouts : traitLayoutTable)
+        for(LayoutCollection traitLayouts : traitLayoutTable)
             traitLayouts.setNaTraitsText();
     }
 
@@ -300,7 +355,7 @@ public class TabletCollectActivity extends AppCompatActivity {
         missingValue.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                for(LayoutCollections layouts : traitLayoutTable) {
+                for(LayoutCollection layouts : traitLayoutTable) {
                     TraitObject currentTrait = layouts.getTraitObject();
                     updateTrait(currentTrait.getTrait(), currentTrait.getFormat(), "NA");
                     layouts.setNaTraitsText();
@@ -317,7 +372,7 @@ public class TabletCollectActivity extends AppCompatActivity {
                 if (dt.isBrapiSynced(rangeBox.getPlotID(), currentTrait.getTrait())) {
                     if (currentTrait.getFormat().equals("photo")) {
                         // I want to use abstract method
-                        for(LayoutCollections traitLayouts : traitLayoutTable) {
+                        for(LayoutCollection traitLayouts : traitLayoutTable) {
                             PhotoTraitLayout traitPhoto = traitLayouts.getPhotoTrait();
                             traitPhoto.brapiDelete(newTraits);
                         }
@@ -354,7 +409,8 @@ public class TabletCollectActivity extends AppCompatActivity {
             infoBarAdapter.configureDropdownArray(plotID);
         }
 
-        String[] traits = dt.getVisibleTrait();
+        all_traits = dt.getAllTraits();
+        traits = dt.getVisibleTrait();
         for (int i = 0; i < traitLayoutTable.size(); ++i) {
             traitLayoutTable.get(i).setTrait(traits[i]);
         }
@@ -383,7 +439,7 @@ public class TabletCollectActivity extends AppCompatActivity {
         }
 
         //move to plot
-        if (type.equals("plot")) {
+        else if (type.equals("plot")) {
             for (int j = 1; j <= rangeID.length; j++) {
                 rangeBox.setRangeByIndex(j - 1);
                 RangeObject cRange = rangeBox.getCRange();
@@ -396,7 +452,7 @@ public class TabletCollectActivity extends AppCompatActivity {
         }
 
         //move to range
-        if (type.equals("range")) {
+        else if (type.equals("range")) {
             for (int j = 1; j <= rangeID.length; j++) {
                 rangeBox.setRangeByIndex(j - 1);
                 RangeObject cRange = rangeBox.getCRange();
@@ -409,12 +465,13 @@ public class TabletCollectActivity extends AppCompatActivity {
         }
 
         //move to plot id
-        if (type.equals("id")) {
+        else if (type.equals("id")) {
             for (int j = 1; j <= rangeID.length; j++) {
                 rangeBox.setRangeByIndex(j - 1);
                 RangeObject cRange = rangeBox.getCRange();
 
                 if (cRange.plot_id.equals(data)) {
+                    Log.d("moveToSearch", "****");
                     moveToResultCore(j);
                     return;
                 }
@@ -424,6 +481,12 @@ public class TabletCollectActivity extends AppCompatActivity {
         if (!haveData) {
             Utils.makeToast(getApplicationContext(), getString(R.string.main_toolbar_moveto_no_match));
         }
+    }
+
+    private void moveEntryById(String id) {
+        rangeBox.setAllRangeID();
+        int[] rangeID = rangeBox.getRangeID();
+        moveToSearch("id", rangeID, null, null, id);
     }
 
     private void moveToResultCore(int j) {
@@ -518,6 +581,141 @@ public class TabletCollectActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        Log.d("onKeyUp", "KeyCode=" + keyCode);
+        barcodeKeyParser.setKeyCode(keyCode);
+        final String strCurVal = barcodeKeyParser.toString();
+        tvCurVal.setText(strCurVal);
+
+        // Wait a moment and see if any other keys have been sent
+        // Keys are sent character by character
+        // Wait a minute, and if the string hasn't changed, the key won't be sent anymore.
+        Timer timer = new Timer();
+        final long DELAY = 200; // in ms
+
+        try {
+            timer.cancel();
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        public void run() {
+                            final String tvVal = tvCurVal.getText().toString();
+                            if (!strCurVal.equals(tvVal))   // entering
+                                return;
+
+                            parseBarcodeString(tvVal);
+                        }
+                    });
+                }
+            }, DELAY);
+        } catch (Exception e) {
+            Log.e(TAG,"" + e.getMessage());
+        }
+
+        Log.d("strCurval", strCurVal);
+        if (strCurVal.isEmpty()) {
+            return super.onKeyUp(keyCode, event);
+        }
+        return false;
+    }
+
+    private void parseBarcodeString(String s) {
+        if (s.isEmpty())
+            return;
+
+        if (isValidBarcodeString(s)) {
+            Log.d("onKeyUp", s);
+            processBarcodeString();
+        }
+        else {
+            Log.d("onKeyUp", "error");
+            playSound("error");
+            barcodeKeyParser.clear();
+        }
+    }
+
+    private void processBarcodeString() {
+        final String strCurVal = barcodeKeyParser.toString();
+        final String[] v = strCurVal.split(":");
+        Log.d("processBarcodeString", strCurVal);
+        if (isValidIDString(v[0], v[1])) {
+            if (isAllTraitsEntered()) {
+                moveEntryById(v[1]);
+            }
+            else {
+                playSound("error2");
+                Utils.makeToast(getApplicationContext(), getString(R.string.main_lack_values));
+            }
+        }
+        else if (inputTraitValueByBarcode(v[0], v[1]))
+            playSound("success");
+        else
+            playSound("error");
+        barcodeKeyParser.clear();
+    }
+
+    private boolean inputTraitValueByBarcode(String key, String value) {
+        final int trait_number =  getTraitNumberByBarcode(key);
+        if (trait_number == 0) {
+            return false;
+        }
+
+        final int traitIndex = allTraitIndexIntoTraitIndex(trait_number - 1);
+        Log.d("traitIndex", String.valueOf(traitIndex));
+        if (traitIndex == -1)
+            return false;
+
+        if (!inputTraitValue(traitIndex, value))
+            return false;
+
+        barcodeKeyParser.clear();
+        return true;
+    }
+
+    private boolean isValidIDString(String key, String value) {
+        return key.toLowerCase().equals("id") && !value.isEmpty();
+    }
+
+    private int getTraitNumberByBarcode(String s) {
+        try {
+            return Integer.parseInt(s);
+        }
+        catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    private boolean isValidBarcodeString(String s) {
+        // s must be form of *:*
+        final int pos = s.indexOf(":");
+        if (pos == -1)
+            return false;
+
+        final int pos2 = s.indexOf(":", pos + 1);
+        return pos2 == -1 && 1 <= pos && pos < s.length() - 1;
+    }
+
+    protected boolean inputTraitValue(int traitIndex, String value) {
+        if (traitIndex >= traitLayoutTable.size())
+            return false;
+
+        Log.d("traitIndex", String.valueOf(traitIndex));
+        Log.d("value", value);
+        LayoutCollection layoutCollections = traitLayoutTable.get(traitIndex);
+        return layoutCollections.setValue(value);
+    }
+
+    private int allTraitIndexIntoTraitIndex(int i) {
+        final String trait = all_traits[i];
+        for (int j = 0; j < traits.length; ++j) {
+            if (traits[j].equals(trait))
+                return j;
+        }
+        return -1;
+    }
+
     /**
      * Helper function update user data in the memory based hashmap as well as
      * the database
@@ -593,8 +791,6 @@ public class TabletCollectActivity extends AppCompatActivity {
             systemMenu.findItem(R.id.lockData).setVisible(entries.contains("lockData"));
         }
     }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -846,14 +1042,14 @@ public class TabletCollectActivity extends AppCompatActivity {
 
                 if (return_action.equals("0")) {
                     if (action == KeyEvent.ACTION_UP) {
-                        rangeBox.moveEntryRight();
+//                        InputTraitValueByBarcode();
+//                        rangeBox.moveEntryRight();
                         return false;
                     }
                 }
 
                 if (return_action.equals("1")) {
                     if (action == KeyEvent.ACTION_UP) {
-                        // あとから実装する
                         // moveTrait("right");
                         return true;
                     }
@@ -898,9 +1094,12 @@ public class TabletCollectActivity extends AppCompatActivity {
             case 252:
                 if (resultCode == RESULT_OK) {
                     for(int i = 0; i < traitLayoutTable.size(); ++i) {
-                        LayoutCollections traitLayouts = traitLayoutTable.get(i);
+                        LayoutCollection traitLayouts = traitLayoutTable.get(i);
                         PhotoTraitLayout traitPhoto = traitLayouts.getPhotoTrait();
-                        traitPhoto.makeImage(currentTrait, newTraits);
+                        if (traitPhoto.isPhotoTaken()) {
+                            Log.d("onActivityResult", String.valueOf(i));
+                            traitPhoto.makeImage(traitPhoto.getTraitObject(), newTraits);
+                        }
                     }
                 }
                 break;
@@ -912,6 +1111,11 @@ public class TabletCollectActivity extends AppCompatActivity {
             super.onActivityResult(requestCode, resultCode, data);
         }
         else if (isBarcodeTargetPlotID()) {
+            if (!isAllTraitsEntered()) {
+                playSound("error2");
+                return;
+            }
+
             inputPlotId = result.getContents();
             rangeBox.setAllRangeID();
             int[] rangeID = rangeBox.getRangeID();
@@ -928,16 +1132,15 @@ public class TabletCollectActivity extends AppCompatActivity {
                 Utils.makeToast(getApplicationContext(), message);
             }
         }
-        /*
-        if (result != null) {
-            inputPlotId = result.getContents();
-            rangeBox.setAllRangeID();
-            int[] rangeID = rangeBox.getRangeID();
-            moveToSearch("id", rangeID, null, null, inputPlotId);
-        } else {
-            super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private boolean isAllTraitsEntered() {
+        for (LayoutCollection layout : traitLayoutTable) {
+            Log.d("isAllTraitsEntered", String.valueOf(layout.isEntered()));
+            if (!layout.isEntered())
+                return false;
         }
-        */
+        return true;
     }
 
     @Override
@@ -1006,7 +1209,7 @@ public class TabletCollectActivity extends AppCompatActivity {
 
     public Map getNewTraits() { return newTraits; }
 
-    void setNewTraits(final String plotID) {
+    public void setNewTraits(final String plotID) {
         newTraits = (HashMap) dt.getUserDetail(plotID).clone();
     }
 
@@ -1027,7 +1230,6 @@ public class TabletCollectActivity extends AppCompatActivity {
     }
 
     final String createSummaryText(final String plotID) {
-        String[] traitList = dt.getAllTraits();
         StringBuilder data = new StringBuilder();
 
         //TODO this test crashes app
@@ -1038,7 +1240,7 @@ public class TabletCollectActivity extends AppCompatActivity {
             }
         }
 
-        for (String s : traitList) {
+        for (String s : all_traits) {
             if (newTraits.containsKey(s)) {
                 data.append(s).append(": ");
                 data.append(newTraits.get(s).toString()).append("\n");
@@ -1048,7 +1250,7 @@ public class TabletCollectActivity extends AppCompatActivity {
     }
 
     private boolean validateData() {
-        for (LayoutCollections layout : traitLayoutTable) {
+        for (LayoutCollection layout : traitLayoutTable) {
             if (!layout.validateData()) {
                 playSound("error");
                 return false;
@@ -1575,6 +1777,146 @@ public class TabletCollectActivity extends AppCompatActivity {
 
         void clickRight() {
             rangeRight.performClick();
+        }
+    }
+
+    private class BarcodeKeyParser {
+        private String buffer;
+        private String prevModifier;
+
+        public BarcodeKeyParser() {
+            clear();
+        }
+
+        public void clear() {
+            buffer = "";
+            prevModifier = "";
+        }
+
+        public String toString() {
+            return buffer;
+        }
+
+        public void setKeyCode(int keyCode) {
+            if (keyCode == 59) {                   // before capital
+                prevModifier = "shift";
+                return;
+            }
+            else if (7 <= keyCode && keyCode <= 16) {   // digit
+                buffer += String.valueOf(keyCode - 7);
+            }
+            else if (keyCode == 74) {
+                buffer += ":";
+            }
+            else if (29 <= keyCode && keyCode <= 54) {  // alphabet
+                if (prevModifier.equals("shift")) {
+                    final char[] c = Character.toChars(keyCode + 36);
+                    buffer += new String(c);
+                }
+                else {
+                    final char[] c = Character.toChars(keyCode + 68);
+                    buffer += new String(c);
+                }
+            }
+            prevModifier = "";
+        }
+    }
+
+    class SoundPlayer {
+        private HashMap<String, AudioTrackData> audioTracks;
+
+        public SoundPlayer() {
+            audioTracks = new HashMap<>();
+            audioTracks.put("success", new AudioTrackData(R.raw.button57));
+            audioTracks.put("error", new AudioTrackData(R.raw.button18));
+            audioTracks.put("error2", new AudioTrackData(R.raw.button67));
+        }
+
+        public void play(String scene) {
+            if (!audioTracks.containsKey(scene))
+                return;
+
+            AudioTrackData audioTrackData = audioTracks.get(scene);
+            audioTrackData.play();
+        }
+    }
+
+    class AudioTrackData {
+        static final int SamplingRate = 32000;
+
+        AudioTrack audioTrack;
+        private byte[] wavData;
+
+        public AudioTrackData(int soundResourceID) {
+            wavData = readWavData(soundResourceID);
+            audioTrack = createAudioTrack();
+        }
+
+        private byte[] readWavData(int soundResourceID) {
+            byte[] wavData_ = null;
+            InputStream input = null;
+            try {
+                // wavを読み込む
+                input = getResources().openRawResource(soundResourceID);
+                wavData_ = new byte[input.available()];
+
+                // input.read(wavData)
+                String readBytes = String.format(
+                        Locale.US, "read bytes = %d", input.read(wavData_));
+                // input.read(wavData)のwarning回避のためだけ
+                input.close();
+            } catch (FileNotFoundException fne) {
+                fne.printStackTrace();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            } finally {
+                try {
+                    if (input != null) input.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+            return wavData_;
+        }
+
+        private AudioTrack createAudioTrack() {
+            // バッファサイズの計算
+            int bufSize = android.media.AudioTrack.getMinBufferSize(
+                    SamplingRate,
+                    AudioFormat.CHANNEL_OUT_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT);
+
+            // AudioTrack.Builder API level 26より
+            AudioTrack audioTrack_ = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                audioTrack_ = new AudioTrack.Builder()
+                        .setAudioAttributes(new AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION_SIGNALLING)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                                .build())
+                        .setAudioFormat(new AudioFormat.Builder()
+                                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                                .setSampleRate(SamplingRate)
+                                .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                                .build())
+                        .setBufferSizeInBytes(bufSize)
+                        .build();
+            }
+            return audioTrack_;
+        }
+
+        public AudioTrack getAudioTrack() { return audioTrack; }
+        public byte[] getWavData() { return wavData; }
+
+        public void play() {
+            if (audioTrack == null || wavData == null)
+                return;
+
+            // 再生
+            audioTrack.play();
+
+            // ヘッダ44byteをオミット
+            audioTrack.write(wavData, 44, wavData.length - 44);
         }
     }
 }

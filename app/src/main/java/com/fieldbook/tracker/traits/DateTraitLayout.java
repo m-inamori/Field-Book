@@ -242,4 +242,9 @@ public class DateTraitLayout extends BaseTraitLayout {
 
         return month;
     }
+
+    @Override
+    public boolean isEntered() {
+        return true;
+    }
 }

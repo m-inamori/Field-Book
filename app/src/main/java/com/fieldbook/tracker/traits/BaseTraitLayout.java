@@ -15,7 +15,10 @@ import com.fieldbook.tracker.objects.RangeObject;
 import com.fieldbook.tracker.objects.TraitObject;
 import com.google.android.material.tabs.TabLayout;
 
+import java.util.HashMap;
 import java.util.Map;
+
+import static com.fieldbook.tracker.activities.ConfigActivity.dt;
 
 public abstract class BaseTraitLayout extends LinearLayout {
     public BaseTraitLayout(Context context) {
@@ -32,10 +35,10 @@ public abstract class BaseTraitLayout extends LinearLayout {
 
     protected TraitObject traitObject = null;
     protected TabletCollectActivity parent = null;
-    protected LayoutCollections cell = null;
+    protected LayoutCollection cell = null;
 
     public void setTraitObject(TraitObject tobj) { traitObject = tobj; }
-    public void setParent(TabletCollectActivity _activity, LayoutCollections _cell) {
+    public void setParent(TabletCollectActivity _activity, LayoutCollection _cell) {
         parent = _activity;
         cell = _cell;
     }
@@ -54,6 +57,8 @@ public abstract class BaseTraitLayout extends LinearLayout {
 
     public abstract void setNaTraitsText();
 
+    public abstract boolean isEntered();
+
     public SharedPreferences getPrefs() {
         return getContext().getSharedPreferences("Settings", 0);
     }
@@ -68,6 +73,10 @@ public abstract class BaseTraitLayout extends LinearLayout {
 
     protected Map getNewTraits() {
         return parent.getNewTraits();
+    }
+
+    protected void setNewTraits(final String plotID) {
+        parent.setNewTraits(plotID);
     }
 
     protected boolean existsNewTraits() {
@@ -91,4 +100,6 @@ public abstract class BaseTraitLayout extends LinearLayout {
     public boolean validateData() { return true; }
 
     public void initCurrentVals() { }
+
+    public boolean setValue(String s) { return false; }
 }

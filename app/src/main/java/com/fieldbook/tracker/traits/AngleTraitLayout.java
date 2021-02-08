@@ -118,4 +118,9 @@ public class AngleTraitLayout extends BaseTraitLayout {
     public void deleteTraitListener() {
         ((CollectActivity) getContext()).removeTrait();
     }
+
+    @Override
+    public boolean isEntered() {
+        return true;
+    }
 }

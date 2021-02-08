@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.fieldbook.tracker.activities.ConfigActivity;
-import com.fieldbook.tracker.activities.CollectActivity;
+import com.fieldbook.tracker.activities.TabletCollectActivity;
 import com.fieldbook.tracker.R;
 import com.fieldbook.tracker.utilities.Constants;
 import com.fieldbook.tracker.utilities.Utils;
@@ -126,7 +126,7 @@ public class AudioTraitLayout extends BaseTraitLayout {
 
         @Override
         public void onClick(View view) {
-            ((CollectActivity) getContext()).setNewTraits((HashMap) ConfigActivity.dt.getUserDetail(getCRange().plot_id).clone());
+            setNewTraits(getCRange().plot_id);
 
             boolean enableNavigation = true;
             switch (buttonState) {
@@ -211,16 +211,16 @@ public class AudioTraitLayout extends BaseTraitLayout {
         }
 
         private void toggleNavigationButtoms(boolean enabled) {
-            ImageButton deleteValue = ((CollectActivity) getContext()).getDeleteValue();
-            ImageView traitLeft = ((CollectActivity) getContext()).getTraitLeft();
-            ImageView traitRight = ((CollectActivity) getContext()).getTraitRight();
-            ImageView rangeLeft = ((CollectActivity) getContext()).getRangeLeft();
-            ImageView rangeRight = ((CollectActivity) getContext()).getRangeRight();
+            ImageButton deleteValue = ((TabletCollectActivity) getContext()).getDeleteValue();
+//            ImageView traitLeft = ((TabletCollectActivity) getContext()).getTraitLeft();
+//            ImageView traitRight = ((TabletCollectActivity) getContext()).getTraitRight();
+            ImageView rangeLeft = ((TabletCollectActivity) getContext()).getRangeLeft();
+            ImageView rangeRight = ((TabletCollectActivity) getContext()).getRangeRight();
 
             rangeLeft.setEnabled(enabled);
             rangeRight.setEnabled(enabled);
-            traitLeft.setEnabled(enabled);
-            traitRight.setEnabled(enabled);
+//            traitLeft.setEnabled(enabled);
+//            traitRight.setEnabled(enabled);
             deleteValue.setEnabled(enabled);
         }
 
@@ -278,5 +278,10 @@ public class AudioTraitLayout extends BaseTraitLayout {
                 mediaRecorder.release();
             }
         }
+    }
+
+    @Override
+    public boolean isEntered() {
+        return recordingLocation == null || !recordingLocation.exists();
     }
 }

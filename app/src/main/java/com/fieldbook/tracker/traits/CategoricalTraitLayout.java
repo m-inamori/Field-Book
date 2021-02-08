@@ -2,6 +2,7 @@ package com.fieldbook.tracker.traits;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -74,11 +75,27 @@ public class CategoricalTraitLayout extends BaseTraitLayout {
                     if (checkButton(btn, getNewTraits(), traitObject)) {
                         return;
                     }
-                    updateTrait(traitObject.getTrait(), traitObject.getFormat(), btn.getText().toString());
+                    final String traitValue = btn.getText().toString();
+                    updateTrait(traitObject.getTrait(), traitObject.getFormat(), traitValue);
+                    getNewTraits().put(traitObject.getTrait(), traitValue);
                     setCategoricalButtons(btn);
                 }
 
             });
+        }
+    }
+
+    @Override
+    public boolean setValue(String value) {
+        try {
+            final int index = Integer.parseInt(value) - 1;
+            final boolean b = index < buttonArray.size();
+            if (b)
+                buttonArray.get(index).performClick();
+            return b;
+        }
+        catch (NumberFormatException e) {
+            return false;
         }
     }
 
@@ -99,13 +116,7 @@ public class CategoricalTraitLayout extends BaseTraitLayout {
         if (newTraits.containsKey(currentTrait.getTrait())) {
             curCat = newTraits.get(currentTrait.getTrait()).toString();
         }
-        if (button.getText().toString().equals(curCat)) {
-            newTraits.remove(currentTrait.getTrait());
-            ConfigActivity.dt.deleteTrait(getCRange().plot_id, currentTrait.getTrait());
-            setCategoricalButtons(null);
-            return true;
-        }
-        return false;
+        return button.getText().toString().equals(curCat);
     }
 
     @Override
@@ -160,5 +171,19 @@ public class CategoricalTraitLayout extends BaseTraitLayout {
         getNewTraits().remove(traitObject.getTrait());
         ConfigActivity.dt.deleteTrait(getCRange().plot_id, traitObject.getTrait());
         setCategoricalButtons(null);
+    }
+
+    @Override
+    public boolean isEntered() {
+        final int pressedBackgroundColor = getResources().getColor(R.color.button_pressed);
+        String[] cat = traitObject.getCategories().split("/");
+        for (int i = 0; i < min(cat.length, buttonArray.size()); i++) {
+            Button button = buttonArray.get(i);
+            if (button.getCurrentTextColor() != Color.BLACK)    // selected
+//            ColorDrawable colorDrawable = (ColorDrawable) button.getBackground();
+//            if (colorDrawable.getColor() == pressedBackgroundColor)
+                return true;
+        }
+        return false;
     }
 }

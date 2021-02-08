@@ -2,7 +2,9 @@ package com.fieldbook.tracker.traits;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -77,14 +79,6 @@ public class NumericTraitLayout extends BaseTraitLayout {
                 return false;
             }
         });
-
-        /*
-        for (Button numButton : numberButtons.values()) {
-            numButton.setMinWidth(80);
-            numButton.setMinimumWidth(80);
-            numButton.setTextSize(18);
-        }
-         */
     }
 
     @Override
@@ -153,5 +147,23 @@ public class NumericTraitLayout extends BaseTraitLayout {
                                                 getEtCurVal().getText().toString());
             }
         }
+    }
+
+    @Override
+    public boolean setValue(String value) {
+        try {
+            Double.parseDouble(value);
+        }
+        catch (NumberFormatException e) {
+            return false;
+        }
+        getEtCurVal().setText(value);
+        updateTrait(traitObject.getTrait(), traitObject.getFormat(), value);
+        return true;
+    }
+
+    @Override
+    public boolean isEntered() {
+        return !TextUtils.isEmpty(getEtCurVal().getText().toString());
     }
 }

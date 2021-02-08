@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -57,16 +58,11 @@ public class TextTraitLayout extends BaseTraitLayout {
         etCurVal.setSelection(etCurVal.getText().length());
         etCurVal.setEnabled(true);
 
-        // あとで復活させる
-        /*
         if (getNewTraits().containsKey(traitObject.getTrait())) {
-            etCurVal.removeTextChangedListener(getCvText());
             etCurVal.setText(getNewTraits().get(traitObject.getTrait()).toString());
             etCurVal.setTextColor(Color.parseColor(getDisplayColor()));
-            etCurVal.addTextChangedListener(getCvText());
             etCurVal.setSelection(etCurVal.getText().length());
         } else {
-            etCurVal.removeTextChangedListener(getCvText());
             etCurVal.setText("");
             etCurVal.setTextColor(Color.BLACK);
 
@@ -75,10 +71,8 @@ public class TextTraitLayout extends BaseTraitLayout {
                 updateTrait(traitObject.getTrait(), traitObject.getFormat(), etCurVal.getText().toString());
             }
 
-            etCurVal.addTextChangedListener(getCvText());
             etCurVal.setSelection(etCurVal.getText().length());
         }
-         */
 
         // This is needed to fix a keyboard bug
         mHandler.postDelayed(new Runnable() {
@@ -101,5 +95,17 @@ public class TextTraitLayout extends BaseTraitLayout {
     @Override
     public void deleteTraitListener() {
         ((CollectActivity) getContext()).removeTrait();
+    }
+
+    @Override
+    public boolean isEntered() {
+        return true;
+    }
+
+    @Override
+    public boolean setValue(String value) {
+        etCurVal.setText(value);
+        updateTrait(traitObject.getTrait(), traitObject.getFormat(), value);
+        return true;
     }
 }

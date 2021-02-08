@@ -425,4 +425,9 @@ public class LabelPrintTraitLayout extends BaseTraitLayout {
         }
         return value;
     }
+
+    @Override
+    public boolean isEntered() {
+        return true;
+    }
 }

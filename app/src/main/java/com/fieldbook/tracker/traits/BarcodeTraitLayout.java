@@ -41,4 +41,9 @@ public class BarcodeTraitLayout extends BaseTraitLayout {
     public void deleteTraitListener() {
 
     }
+
+    @Override
+    public boolean isEntered() {
+        return true;
+    }
 }
