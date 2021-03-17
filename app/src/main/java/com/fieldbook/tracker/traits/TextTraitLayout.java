@@ -4,17 +4,26 @@ import android.content.Context;
 import android.graphics.Color;
 import android.os.Handler;
 import android.os.SystemClock;
+import android.text.Editable;
 import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.fieldbook.tracker.R;
 import com.fieldbook.tracker.activities.CollectActivity;
+
+import java.util.Timer;
+import java.util.TimerTask;
+
+import static androidx.core.content.ContextCompat.getSystemService;
 
 public class TextTraitLayout extends BaseTraitLayout {
 
@@ -49,6 +58,18 @@ public class TextTraitLayout extends BaseTraitLayout {
     }
 
     @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.d("onTouchEvent", event.toString());
+        // hide keyboard
+        InputMethodManager imm = parent.getImm();   // object for controlling keyboard display
+        imm.hideSoftInputFromWindow(getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+        // move focus into this
+        requestFocus();
+
+        return true;
+    }
+
+    @Override
     public void loadLayout() {
         // Current value display
         etCurVal = findViewById(R.id.etCurVal);
@@ -74,20 +95,52 @@ public class TextTraitLayout extends BaseTraitLayout {
             etCurVal.setSelection(etCurVal.getText().length());
         }
 
+        etCurVal.addTextChangedListener(
+                new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+                    }
+
+                    @Override
+                    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+                    }
+
+                    private Timer timer = new Timer();
+                    private final long DELAY = 300;
+
+                    @Override
+                    public void afterTextChanged(Editable s) {
+                        timer.cancel();
+                        timer = new Timer();
+                        timer.schedule(
+                                new TimerTask() {
+                                    @Override
+                                    public void run() {
+                                        updateTrait(traitObject.getTrait(), traitObject.getFormat(),
+                                                etCurVal.getText().toString());
+                                        Log.d("afterTextChanged", etCurVal.getText().toString());
+                                    }
+                                },
+                                DELAY
+                        );
+                    }
+                }
+        );
+
         // This is needed to fix a keyboard bug
         mHandler.postDelayed(new Runnable() {
             public void run() {
-                Log.d("TextTraitLayout", traitObject.getTrait());
-                Log.d("TextTraitLayout", String.valueOf(etCurVal == null));
-                getEtCurVal().dispatchTouchEvent(MotionEvent.obtain(
+                etCurVal.dispatchTouchEvent(MotionEvent.obtain(
                         SystemClock.uptimeMillis(),
                         SystemClock.uptimeMillis(),
                         MotionEvent.ACTION_DOWN, 0, 0, 0));
-                getEtCurVal().dispatchTouchEvent(MotionEvent.obtain(
+                etCurVal.dispatchTouchEvent(MotionEvent.obtain(
                         SystemClock.uptimeMillis(),
                         SystemClock.uptimeMillis(),
                         MotionEvent.ACTION_UP, 0, 0, 0));
-                getEtCurVal().setSelection(getEtCurVal().getText().length());
+                etCurVal.setSelection(getEtCurVal().getText().length());
             }
         }, 300);
     }

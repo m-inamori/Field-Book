@@ -14,7 +14,6 @@ import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.ToggleButton;
-import android.util.Log;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
@@ -604,8 +603,8 @@ public class NewTraitDialog extends DialogFragment {
         }
 
         public boolean isBarcodeBoxVisible() {
-			return false;
-		}
+            return false;
+        }
 
         public boolean isNumericInputType() {
             return false;
@@ -626,8 +625,8 @@ public class NewTraitDialog extends DialogFragment {
         }
 
         public boolean isBarcodeBoxVisible() {
-			return true;
-		}
+            return true;
+        }
 
         public boolean isNumericInputType() {
             return false;
@@ -713,8 +712,8 @@ public class NewTraitDialog extends DialogFragment {
         }
 
         public boolean isBarcodeBoxVisible() {
-			return false;
-		}
+            return false;
+        }
 
         public boolean isNumericInputType() {
             return false;
@@ -889,8 +888,8 @@ public class NewTraitDialog extends DialogFragment {
         }
 
         public boolean isBarcodeBoxVisible() {
-			return false;
-		}
+            return false;
+        }
 
         public boolean isNumericInputType() {
             return false;
@@ -930,8 +929,8 @@ public class NewTraitDialog extends DialogFragment {
         }
 
         public boolean isBarcodeBoxVisible() {
-			return true;
-		}
+            return true;
+        }
 
         public boolean isNumericInputType() {
             return false;

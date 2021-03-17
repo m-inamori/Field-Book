@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
@@ -15,12 +16,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.arch.core.util.Function;
 
+import com.fieldbook.tracker.brapi.ApiError;
 import com.fieldbook.tracker.brapi.BrAPIService;
 import com.fieldbook.tracker.brapi.BrapiAuthDialog;
 import com.fieldbook.tracker.brapi.BrapiControllerResponse;
 import com.fieldbook.tracker.brapi.Observation;
 import com.fieldbook.tracker.database.DataHelper;
 import com.fieldbook.tracker.R;
+import com.fieldbook.tracker.preferences.GeneralKeys;
 import com.fieldbook.tracker.utilities.Utils;
 
 import java.text.SimpleDateFormat;
@@ -75,6 +78,7 @@ public class BrapiExportActivity extends AppCompatActivity {
                 String brapiBaseURL = BrAPIService.getBrapiUrl(this);
 
                 this.dataHelper = new DataHelper(this);
+
                 brAPIService = new BrAPIService(brapiBaseURL, this.dataHelper);
 
                 putObservationsError = UploadError.NONE;
@@ -402,21 +406,26 @@ public class BrapiExportActivity extends AppCompatActivity {
 
     private UploadError processErrorCode(Integer code) {
         UploadError retVal;
+        ApiError apiError = ApiError.processErrorCode(code);
 
-        switch (code) {
-            case 403:
+        if (apiError == null) {
+            return UploadError.API_CALLBACK_ERROR;
+        }
+
+        switch (apiError) {
+            case FORBIDDEN:
                 // Warn that they do not have permissions to push traits
                 retVal = UploadError.API_PERMISSION_ERROR;
                 break;
-            case 401:
+            case UNAUTHORIZED:
                 // Start the login process
                 retVal = UploadError.API_UNAUTHORIZED_ERROR;
                 break;
-            case 400:
+            case BAD_REQUEST:
                 // Bad request
                 retVal = UploadError.API_CALLBACK_ERROR;
                 break;
-            case 404:
+            case NOT_FOUND:
                 // End point not supported
                 retVal = UploadError.API_NOTSUPPORTED_ERROR;
                 break;
@@ -523,7 +532,7 @@ public class BrapiExportActivity extends AppCompatActivity {
 
     private UploadError processResponse(List<NewObservationDbIdsObservations> observationDbIds, List<Observation> observationsNeedingSync) {
         UploadError retVal = UploadError.NONE;
-        SimpleDateFormat timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ",
+        SimpleDateFormat timeStamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZZZZZ",
                 Locale.getDefault());
         String syncTime = timeStamp.format(Calendar.getInstance().getTime());
 

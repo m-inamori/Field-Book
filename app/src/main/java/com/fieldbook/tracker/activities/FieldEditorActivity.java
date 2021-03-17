@@ -20,6 +20,7 @@ import androidx.appcompat.app.AlertDialog;
 
 import android.provider.OpenableColumns;
 import android.text.Html;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
@@ -39,6 +40,7 @@ import android.view.MenuItem;
 import com.fieldbook.tracker.adapters.FieldAdapter;
 import com.fieldbook.tracker.objects.FieldFileObject;
 import com.fieldbook.tracker.objects.FieldObject;
+import com.fieldbook.tracker.preferences.GeneralKeys;
 import com.fieldbook.tracker.utilities.Constants;
 import com.fieldbook.tracker.database.DataHelper;
 import com.fieldbook.tracker.R;
@@ -49,6 +51,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -91,6 +94,7 @@ public class FieldEditorActivity extends AppCompatActivity {
     // Helper function to load data
     public static void loadData() {
         try {
+            ConfigActivity.dt.open();
             mAdapter = new FieldAdapter(thisActivity, ConfigActivity.dt.getAllFieldObjects());
             fieldList.setAdapter(mAdapter);
         } catch (Exception e) {
@@ -135,7 +139,8 @@ public class FieldEditorActivity extends AppCompatActivity {
         if (ConfigActivity.dt == null) {    // when resuming
             ConfigActivity.dt = new DataHelper(this);
         }
-        ConfigActivity.dt.updateExpTable(false, true, false, 0);
+        ConfigActivity.dt.open();
+        ConfigActivity.dt.updateExpTable(false, true, false, ep.getInt("SelectedFieldExpId", 0));
         fieldList = findViewById(R.id.myList);
         mAdapter = new FieldAdapter(thisActivity, ConfigActivity.dt.getAllFieldObjects());
         fieldList.setAdapter(mAdapter);
@@ -200,7 +205,8 @@ public class FieldEditorActivity extends AppCompatActivity {
 
         intent.setClassName(FieldEditorActivity.this,
                 FileExploreActivity.class.getName());
-        intent.putExtra("path", Constants.FIELDIMPORTPATH);
+
+        intent.putExtra("path", ep.getString(GeneralKeys.DEFAULT_STORAGE_LOCATION_DIRECTORY, Constants.MPATH) + Constants.FIELDIMPORTPATH);
         intent.putExtra("include", new String[]{"csv", "xls"});
         intent.putExtra("title", getString(R.string.import_dialog_title_fields));
         startActivityForResult(intent, 1);
@@ -399,7 +405,7 @@ public class FieldEditorActivity extends AppCompatActivity {
             OutputStream out = null;
             try {
                 in = getContentResolver().openInputStream(content_describer);
-                out = new FileOutputStream(new File(Constants.FIELDIMPORTPATH + "/" + getFileName(content_describer)));
+                out = new FileOutputStream(new File(ep.getString(GeneralKeys.DEFAULT_STORAGE_LOCATION_DIRECTORY, Constants.MPATH) + Constants.FIELDIMPORTPATH + "/" + getFileName(content_describer)));
                 byte[] buffer = new byte[1024];
                 int len;
                 while ((len = in.read(buffer)) != -1) {
@@ -426,7 +432,7 @@ public class FieldEditorActivity extends AppCompatActivity {
                 }
             }
 
-            final String chosenFile = Constants.FIELDIMPORTPATH + "/" + getFileName(content_describer);
+            final String chosenFile = ep.getString(GeneralKeys.DEFAULT_STORAGE_LOCATION_DIRECTORY, Constants.MPATH) + Constants.FIELDIMPORTPATH + "/" + getFileName(content_describer);
 
             String extension = "";
             int i = chosenFile.lastIndexOf('.');
@@ -463,32 +469,11 @@ public class FieldEditorActivity extends AppCompatActivity {
             Utils.makeToast(getApplicationContext(),getString(R.string.import_error_unsupported));
         }
 
-        makeDirs(fieldFile.getStem());
+        Utils.createDir(this, ep.getString(GeneralKeys.DEFAULT_STORAGE_LOCATION_DIRECTORY,Constants.MPATH) + Constants.PLOTDATAPATH + "/" + fieldFile.getStem() + "/audio");
+        Utils.createDir(this, ep.getString(GeneralKeys.DEFAULT_STORAGE_LOCATION_DIRECTORY,Constants.MPATH) + Constants.PLOTDATAPATH + "/" + fieldFile.getStem() + "/photos");
+        Utils.createDir(this, ep.getString(GeneralKeys.DEFAULT_STORAGE_LOCATION_DIRECTORY,Constants.MPATH) + Constants.PLOTDATAPATH + "/" + fieldFile.getStem() + "/photos/.thumbnails");
+
         loadFile(fieldFile);
-    }
-
-    private void makeDirs(final String stem) {
-        final String dir = Constants.PLOTDATAPATH + "/" + stem;
-        createDir(dir);
-        createDir(dir + "/audio");
-        createDir(dir + "/photos");
-        createDir(dir + "/photos/.thumbnails");
-    }
-
-    private void createDir(String path) {
-        File dir = new File(path);
-        File blankFile = new File(path + "/.fieldbook");
-
-        if (!dir.exists()) {
-            dir.mkdirs();
-
-            try {
-                blankFile.getParentFile().mkdirs();
-                blankFile.createNewFile();
-                scanFile(blankFile);
-            } catch (IOException ignore) {
-            }
-        }
     }
 
     private void loadFile(FieldFileObject.FieldFileBase fieldFile) {
@@ -685,14 +670,23 @@ public class FieldEditorActivity extends AppCompatActivity {
                 Utils.makeToast(getApplicationContext(),getString(R.string.import_error_unique_characters_illegal));
             } else {
                 Editor ed = ep.edit();
-                ed.putString("ImportUniqueName", unique.getSelectedItem().toString());
-                ed.putString("ImportFirstName", primary.getSelectedItem().toString());
-                ed.putString("ImportSecondName", secondary.getSelectedItem().toString());
+
+                String uniqueName = unique.getSelectedItem().toString();
+                String firstName = primary.getSelectedItem().toString();
+                String secondName = secondary.getSelectedItem().toString();
+
+                ed.putString("ImportUniqueName", uniqueName);
+                ed.putString("ImportFirstName", firstName);
+                ed.putString("ImportSecondName", secondName);
                 ed.putBoolean("ImportFieldFinished", true);
+                ed.putInt("SelectedFieldExpId", exp_id);
+
                 ed.apply();
 
                 CollectActivity.reloadData = true;
                 loadData();
+
+                ConfigActivity.dt.open();
                 ConfigActivity.dt.switchField(exp_id);
             }
         }

@@ -3,7 +3,6 @@ package com.fieldbook.tracker.traits;
 import android.content.Context;
 import android.net.UrlQuerySanitizer;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -47,7 +46,6 @@ public class BooleanTraitLayout extends BaseTraitLayout {
         eImg.setOnClickListener(new OnClickListener() {
             public void onClick(View arg0) {
                 final String value = getNewTraits().get(traitObject.getTrait()).toString();
-                Log.d("onClick", value);
 
                 String  new_value;
                 if (value.equalsIgnoreCase("false")) {

@@ -3,10 +3,7 @@ package com.fieldbook.tracker.traits;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.RippleDrawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,9 +24,8 @@ import com.google.android.flexbox.FlexboxLayoutManager;
 import java.util.ArrayList;
 import java.util.HashSet;
 
-import static java.lang.Math.min;
-
 public class MultiCatTraitLayout extends BaseTraitLayout {
+    //todo this can eventually be merged with multicattraitlayout when we can support a switch in traits on how many categories to allow user to select
 
     //private StaggeredGridView gridMultiCat;
     private RecyclerView gridMultiCat;
@@ -84,10 +80,10 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
 
         if (!((TabletCollectActivity) getContext()).isDataLocked()) {
 
-            gridMultiCat.setAdapter(new MutlticatTraitAdapter(getContext()) {
+            gridMultiCat.setAdapter(new MultiCatTraitAdapter(getContext()) {
 
                 @Override
-                public void onBindViewHolder(MulticatTraitViewHolder holder, int position) {
+                public void onBindViewHolder(MultiCatTraitViewHolder holder, int position) {
                     holder.bindTo();
                     holder.mButton.setText(cat[position]);
                     holder.mButton.setOnClickListener(createClickListener(holder.mButton,position));
@@ -105,9 +101,11 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
         gridMultiCat.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                gridMultiCat.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                View lastChild = gridMultiCat.getChildAt(gridMultiCat.getChildCount() - 1);
-                gridMultiCat.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, lastChild.getBottom()));
+                gridMultiCat.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+//                gridMultiCat.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+//                View lastChild = gridMultiCat.getChildAt(gridMultiCat.getChildCount() - 1);
+//                gridMultiCat.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.FILL_PARENT, lastChild.getBottom()));
+                gridMultiCat.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
             }
         });
     }
@@ -228,7 +226,7 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
     @Override
     public boolean setValue(String value) {
         try {
-            final int i = Integer.parseInt(value);
+            final int i = Integer.parseInt(value) - 1;
             final boolean b = i < numberOfCategories();
             if (b)
                 ((Button)gridMultiCat.getChildAt(i)).performClick();
@@ -256,23 +254,23 @@ public class MultiCatTraitLayout extends BaseTraitLayout {
     }
 }
 
-class MutlticatTraitAdapter extends RecyclerView.Adapter<MulticatTraitViewHolder> {
+class MultiCatTraitAdapter extends RecyclerView.Adapter<MultiCatTraitViewHolder> {
 
     private Context mContext;
 
-    MutlticatTraitAdapter(Context context) {
+    MultiCatTraitAdapter(Context context) {
         mContext = context;
     }
 
     @Override
-    public MulticatTraitViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public MultiCatTraitViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.trait_multicat_button, parent, false);
-        return new MulticatTraitViewHolder(view);
+        return new MultiCatTraitViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(MulticatTraitViewHolder holder, int position) {
+    public void onBindViewHolder(MultiCatTraitViewHolder holder, int position) {
 
     }
 
@@ -287,11 +285,11 @@ class MutlticatTraitAdapter extends RecyclerView.Adapter<MulticatTraitViewHolder
     }
 }
 
-class MulticatTraitViewHolder extends RecyclerView.ViewHolder {
+class MultiCatTraitViewHolder extends RecyclerView.ViewHolder {
 
     Button mButton;
 
-    MulticatTraitViewHolder(View itemView) {
+    MultiCatTraitViewHolder(View itemView) {
         super(itemView);
         mButton = (Button) itemView.findViewById(R.id.multicatButton);
     }

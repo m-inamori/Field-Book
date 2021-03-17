@@ -68,13 +68,13 @@ public class TraitObject {
         this.details = details;
     }
 
-	public Boolean usesBarcode() {
-		return with_barcode;
-	}
+    public Boolean usesBarcode() {
+        return with_barcode;
+    }
 
-	public void setBarcode(Boolean b) {
-		with_barcode = b;
-	}
+    public void setBarcode(Boolean b) {
+        with_barcode = b;
+    }
 
     public String getCategories() {
         return categories;
@@ -137,9 +137,13 @@ public class TraitObject {
 
         Log.d("FB",s);
         if (minimum.length() > 0) {     // minimum exists
-            final double v = Double.parseDouble(s);
-            final double lowerValue = Double.parseDouble(minimum);
+            try {
+                final double v = Double.parseDouble(s);
+                final double lowerValue = Double.parseDouble(minimum);
                 return v < lowerValue;
+            } catch (NumberFormatException e) {
+                return true;
+            }
         } else {
             return false;
         }
@@ -151,34 +155,38 @@ public class TraitObject {
 
         Log.d("FB",s);
         if (maximum.length() > 0) {     // maximum exists
-            final double v = Double.parseDouble(s);
-            final double upperValue = Double.parseDouble(maximum);
-            return v > upperValue;
+            try {
+                final double v = Double.parseDouble(s);
+                final double upperValue = Double.parseDouble(maximum);
+                return v > upperValue;
+            } catch (NumberFormatException e) {
+                return true;
+            }
         } else {
             return false;
         }
     }
     
     public boolean isValidFormat(String s) {
-		if (isNumerical()) {
-		    if (format.equals("percent") && s.charAt(s.length()-1) == '%')
-		        s = s.substring(0, s.length() - 1);
-			try {
-				final double v = Double.parseDouble(s);
-				return true;
-			}
-			catch(NumberFormatException e) {
-				return false;
-			}
-		}
-		else {
-			return true;
-		}
-	}
+        if (isNumerical()) {
+            if (format.equals("percent") && s.charAt(s.length()-1) == '%')
+                s = s.substring(0, s.length() - 1);
+            try {
+                final double v = Double.parseDouble(s);
+                return true;
+            }
+            catch(NumberFormatException e) {
+                return false;
+            }
+        }
+        else {
+            return true;
+        }
+    }
     
     public boolean isNumerical() {
-		return format.equals("numeric") || format.equals("percent");
-	}
-	public boolean isText() { return format.equals("text"); }
-	public boolean isCategorical() { return format.equals("categorical") || format.equals("multicat"); }
+        return format.equals("numeric") || format.equals("percent");
+    }
+    public boolean isText() { return format.equals("text"); }
+    public boolean isCategorical() { return format.equals("categorical") || format.equals("multicat"); }
 }

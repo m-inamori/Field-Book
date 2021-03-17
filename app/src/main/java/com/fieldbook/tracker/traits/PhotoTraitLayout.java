@@ -5,6 +5,7 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -28,6 +29,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
+import androidx.preference.PreferenceManager;
 
 import com.fieldbook.tracker.activities.ConfigActivity;
 import com.fieldbook.tracker.activities.CollectActivity;
@@ -35,6 +37,7 @@ import com.fieldbook.tracker.R;
 import com.fieldbook.tracker.activities.TabletCollectActivity;
 import com.fieldbook.tracker.brapi.Observation;
 import com.fieldbook.tracker.objects.TraitObject;
+import com.fieldbook.tracker.preferences.GeneralKeys;
 import com.fieldbook.tracker.utilities.Constants;
 import com.fieldbook.tracker.adapters.GalleryImageAdapter;
 import com.fieldbook.tracker.utilities.DialogUtils;
@@ -94,14 +97,6 @@ public class PhotoTraitLayout extends BaseTraitLayout {
 
     @Override
     public void loadLayout() {
-        // あとで、セルの頭にEditTextを置く
-        // そのときは復活させる
-        /*
-        getEtCurVal().removeTextChangedListener(getCvText());
-        getEtCurVal().setVisibility(EditText.GONE);
-        getEtCurVal().setEnabled(false);
-         */
-
         // Run saving task in the background so we can showing progress dialog
         Handler mHandler = new Handler();
         mHandler.post(importRunnable);
@@ -218,6 +213,7 @@ public class PhotoTraitLayout extends BaseTraitLayout {
             File f = new File(path);
             Intent intent = new Intent();
             intent.setAction(Intent.ACTION_VIEW);
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             intent.setDataAndType(FileProvider.getUriForFile(getContext(),
                     getContext().getApplicationContext().getPackageName() + ".fileprovider", f), "image/*");
             getContext().startActivity(intent);

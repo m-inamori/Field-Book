@@ -186,6 +186,8 @@ public class TabletCollectActivity extends AppCompatActivity {
     private InputMethodManager imm;
     private Boolean dataLocked = false;
 
+    public InputMethodManager getImm() { return imm; }
+
     public static void disableViews(ViewGroup layout) {
         layout.setEnabled(false);
         for (int i = 0; i < layout.getChildCount(); i++) {
@@ -300,7 +302,6 @@ public class TabletCollectActivity extends AppCompatActivity {
         };
         traits = dt.getVisibleTrait();
         all_traits = dt.getAllTraits();
-        Log.d("loadScreen", "aaaaaaaa");
         for (int i = 0; i < min(holderIDs.length, traits.length); ++i) {
             LinearLayout layout = findViewById(holderIDs[i]);
             LayoutCollection collection = new LayoutCollection(this, layout);
@@ -639,7 +640,6 @@ public class TabletCollectActivity extends AppCompatActivity {
     private void processBarcodeString() {
         final String strCurVal = barcodeKeyParser.toString();
         final String[] v = strCurVal.split(":");
-        Log.d("processBarcodeString", strCurVal);
         if (isValidIDString(v[0], v[1])) {
             if (isAllTraitsEntered()) {
                 moveEntryById(v[1]);
@@ -649,10 +649,12 @@ public class TabletCollectActivity extends AppCompatActivity {
                 Utils.makeToast(getApplicationContext(), getString(R.string.main_lack_values));
             }
         }
-        else if (inputTraitValueByBarcode(v[0], v[1]))
+        else if (inputTraitValueByBarcode(v[0], v[1])) {
             playSound("success");
-        else
+        }
+        else {
             playSound("error");
+        }
         barcodeKeyParser.clear();
     }
 
@@ -1654,7 +1656,7 @@ public class TabletCollectActivity extends AppCompatActivity {
                 return;
             }
 
-            if (ep.getBoolean(GeneralKeys.DISABLE_ENTRY_ARROW_LEFT, false)
+            if (ep.getBoolean(GeneralKeys.ENTRY_NAVIGATION_SOUND, false)
                     && !existsTrait()) {
                 playSound("error");
             } else {
@@ -1673,7 +1675,7 @@ public class TabletCollectActivity extends AppCompatActivity {
                 return;
             }
 
-            if (ep.getBoolean(GeneralKeys.DISABLE_ENTRY_ARROW_RIGHT, false)
+            if (ep.getBoolean(GeneralKeys.ENTRY_NAVIGATION_SOUND, false)
                     && !existsTrait()) {
                 playSound("error");
             } else {
@@ -1798,6 +1800,7 @@ public class TabletCollectActivity extends AppCompatActivity {
         }
 
         public void setKeyCode(int keyCode) {
+            Log.d("setKeyCode", String.valueOf(keyCode));
             if (keyCode == 59) {                   // before capital
                 prevModifier = "shift";
                 return;
@@ -1809,6 +1812,7 @@ public class TabletCollectActivity extends AppCompatActivity {
                 buffer += ":";
             }
             else if (29 <= keyCode && keyCode <= 54) {  // alphabet
+                Log.d("setKeyCode", String.valueOf(keyCode) + " " + prevModifier);
                 if (prevModifier.equals("shift")) {
                     final char[] c = Character.toChars(keyCode + 36);
                     buffer += new String(c);

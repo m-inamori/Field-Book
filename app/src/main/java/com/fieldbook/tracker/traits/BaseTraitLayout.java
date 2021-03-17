@@ -3,6 +3,7 @@ package com.fieldbook.tracker.traits;
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -86,7 +87,9 @@ public abstract class BaseTraitLayout extends LinearLayout {
     public EditText getEtCurVal() { return cell.getEtCurVal(); }
 
     public String getDisplayColor() {
-        return parent.getDisplayColor();
+        String hexColor = String.format("#%06X", (0xFFFFFF & getPrefs().getInt("SAVED_DATA_COLOR", Color.parseColor("#d50000"))));
+
+        return hexColor;
     }
 
     public void updateTrait(String _parent, String trait, String value) {

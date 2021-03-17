@@ -5,9 +5,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.Preference;
 import android.view.MenuItem;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 import androidx.fragment.app.Fragment;
 import androidx.preference.PreferenceFragmentCompat;
 
@@ -16,6 +18,13 @@ import com.bytehamster.lib.preferencesearch.SearchPreferenceResultListener;
 import com.fieldbook.tracker.R;
 import com.fieldbook.tracker.brapi.BrAPIService;
 import com.fieldbook.tracker.brapi.BrapiControllerResponse;
+import com.fieldbook.tracker.objects.TraitObject;
+import com.fieldbook.tracker.traits.BaseTraitLayout;
+import com.fieldbook.tracker.traits.PhotoTraitLayout;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
+
+import java.io.File;
 
 public class PreferencesActivity extends AppCompatActivity implements PreferenceFragmentCompat.OnPreferenceStartFragmentCallback, SearchPreferenceResultListener {
 
@@ -40,6 +49,20 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         prefsFragment = new PreferencesFragment();
         getSupportFragmentManager().beginTransaction()
                 .replace(android.R.id.content, prefsFragment).commit();
+
+        //parse passed bundle and check if the person should be updated.
+        Bundle extras = getIntent().getExtras();
+        if (extras != null && extras.getBoolean("PersonUpdate", false)) {
+
+            //starts fragment with bundle that tells the fragment to open the person setting
+            Fragment profile = new ProfilePreferencesFragment();
+            Bundle personUpdate = new Bundle();
+            personUpdate.putBoolean("PersonUpdate", true);
+            profile.setArguments(personUpdate);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(android.R.id.content, profile).commit();
+
+        }
     }
 
     @Override
@@ -77,7 +100,6 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
         // Set our button visibility and text
         //todo null object reference
         //preferencesFragmentBrapi.setButtonView();
-
         processMessage(brapiControllerResponse);
     }
 
@@ -116,5 +138,13 @@ public class PreferencesActivity extends AppCompatActivity implements Preference
                 .addToBackStack(null)
                 .commit();
         return true;
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        for (Fragment fragment : getSupportFragmentManager().getFragments()) {
+            fragment.onActivityResult(requestCode, resultCode, data);
+        }
     }
 }

@@ -1,14 +1,17 @@
 package com.fieldbook.tracker.traits;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import androidx.preference.PreferenceManager;
+
 import com.fieldbook.tracker.R;
+import com.fieldbook.tracker.preferences.GeneralKeys;
 import com.fieldbook.tracker.utilities.Constants;
 import com.fieldbook.tracker.utilities.Utils;
 
@@ -100,7 +103,7 @@ public class DiseaseRatingTraitLayout extends BaseTraitLayout {
         Scanner inFile1 = null;
 
         try {
-            inFile1 = new Scanner(new File(Constants.TRAITPATH + "/severity.txt"));
+            inFile1 = new Scanner(new File(getPrefs().getString(GeneralKeys.DEFAULT_STORAGE_LOCATION_DIRECTORY, Constants.MPATH) + Constants.TRAITPATH + "/severity.txt"));
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -165,15 +168,12 @@ public class DiseaseRatingTraitLayout extends BaseTraitLayout {
             } else {
                 v = rustButtons.get(view.getId()).getText().toString();
             }
-            Log.d("onClick", v);
 
             if (getVisibility() == View.VISIBLE) {
                 final String value = getEtCurVal().getText().toString();
-                Log.d("value", value);
                 if (value.length() > 0 && !v.equals("/")
                             && !value.substring(value.length() - 1).equals("/")) {
                     String lastChar = value.substring(value.length() - 1);
-                    Log.d("lastChar", lastChar);
                     if (!lastChar.matches("^[a-zA-Z]*$")) {
                         v = ":" + v;
                     }

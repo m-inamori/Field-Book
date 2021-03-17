@@ -1,12 +1,15 @@
 package com.fieldbook.tracker.utilities;
 
 import android.Manifest;
+import android.app.Application;
 import android.os.Environment;
 
 import java.io.File;
 
-public class Constants {
+public class Constants extends Application {
     public static final String TAG = "Field Book";
+
+    public static final String MPATH = Environment.getExternalStorageDirectory().toString() + "/fieldBook";
 
     public static final String RESOURCEPATH = Environment.getExternalStorageDirectory().toString()
             + "/fieldBook/resources";
@@ -22,9 +25,6 @@ public class Constants {
 
     public static final String FIELDEXPORTPATH = Environment.getExternalStorageDirectory().toString()
             + "/fieldBook/field_export";
-
-    public static final File MPATH = new File(Environment.getExternalStorageDirectory().toString()
-            + "/fieldBook");
 
     public static final String BACKUPPATH = Environment.getExternalStorageDirectory().toString()
             + "/fieldBook/database";
@@ -44,4 +44,5 @@ public class Constants {
     public final static int PERM_REQ = 100;
 
     public static final String BRAPI_PATH = "/brapi/v1";
+
 }

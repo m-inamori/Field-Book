@@ -189,7 +189,7 @@
     <string name="preferences_general_feature_barcode_text_description">ユニークIDを入力するダイアログを開き、特定のエントリーに移動</string>
     <string name="preferences_general_feature_datagrid">データグリッド</string>
     <string name="preferences_general_feature_datagrid_description">形質の収集データをスプレッドシートにより表示</string>
-    <string name="preferences_source_default_category_title">デフォルトのデータ</string>
+    <string name="preferences_general_system_title">デフォルトのデータ</string>
     <string name="preferences_source_default_import">デフォルトのインポートソース</string>
     <string name="preferences_source_default_export">デフォルトのエクスポートソース</string>
     <string name="preferences_appearance_system_category_title">アプリケーション</string>

@@ -136,4 +136,12 @@ public class PercentTraitLayout extends BaseTraitLayout {
     public boolean isEntered() {
         return true;
     }
+
+    @Override
+    public boolean setValue(String value) {
+        seekBar.setProgress(Integer.parseInt(value));
+        setCurrentValueText(value, Color.parseColor(getDisplayColor()));
+        updateTrait(traitObject.getTrait(), traitObject.getFormat(), value);
+        return true;
+    }
 }

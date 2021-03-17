@@ -1753,7 +1753,7 @@ Log.d("CollectActivity", "moveToSearch");
                 return;
             }
 
-            if (ep.getBoolean(GeneralKeys.DISABLE_ENTRY_ARROW_LEFT, false)
+            if (ep.getBoolean(GeneralKeys.ENTRY_NAVIGATION_SOUND, false)
                     && !parent.getTraitBox().existsTrait()) {
                 playSound("error");
             } else {
@@ -1772,7 +1772,7 @@ Log.d("CollectActivity", "moveToSearch");
                 return;
             }
 
-            if (ep.getBoolean(GeneralKeys.DISABLE_ENTRY_ARROW_RIGHT, false)
+            if (ep.getBoolean(GeneralKeys.ENTRY_NAVIGATION_SOUND, false)
                     && !parent.getTraitBox().existsTrait()) {
                 playSound("error");
             } else {

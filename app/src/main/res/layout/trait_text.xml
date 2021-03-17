@@ -5,7 +5,14 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:focusableInTouchMode="true"
     android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
 
     <EditText
         android:id="@+id/etCurVal"
@@ -25,5 +32,11 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@id/valuesPlotRangeHolder" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
 
 </com.fieldbook.tracker.traits.TextTraitLayout>

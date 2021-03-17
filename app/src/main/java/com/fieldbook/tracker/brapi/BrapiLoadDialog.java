@@ -57,9 +57,8 @@ public class BrapiLoadDialog extends Dialog implements android.view.View.OnClick
         this.setCanceledOnTouchOutside(false);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(R.layout.dialog_brapi_import);
+        String brapiBaseURL = BrAPIService.getBrapiUrl(this.context);
 
-        String brapiBaseURL = this.context.getSharedPreferences("Settings", 0)
-                .getString(GeneralKeys.BRAPI_BASE_URL, "") + Constants.BRAPI_PATH;
         brAPIService = new BrAPIService(brapiBaseURL, new DataHelper(this.context));
         saveBtn = findViewById(R.id.brapi_save_btn);
         saveBtn.setOnClickListener(this);
@@ -112,7 +111,6 @@ public class BrapiLoadDialog extends Dialog implements android.view.View.OnClick
                 return null;
             }
         });
-
 
         brAPIService.getPlotDetails(brapiToken, study.getStudyDbId(), new Function<BrapiStudyDetails, Void>() {
             @Override
@@ -284,7 +282,7 @@ public class BrapiLoadDialog extends Dialog implements android.view.View.OnClick
                 } else if (brapiControllerResponse.message == BrAPIService.notUniqueIdMessage) {
                     Toast.makeText(context, R.string.import_error_unique, Toast.LENGTH_LONG).show();
                 } else {
-                    Log.e("error", brapiControllerResponse.message);
+                    Log.e("error-ope", brapiControllerResponse.message);
                     Toast.makeText(context, R.string.brapi_save_field_error, Toast.LENGTH_LONG).show();
                 }
             }
@@ -292,7 +290,7 @@ public class BrapiLoadDialog extends Dialog implements android.view.View.OnClick
             // This is an unhandled failed that we should not run into unless there is
             // an error in the saveStudyDetails code outside of that handling.
             if (fail) {
-                Log.e("error", brapiControllerResponse.message);
+                Log.e("error-opef", brapiControllerResponse.message);
                 Toast.makeText(context, R.string.brapi_save_field_error, Toast.LENGTH_LONG).show();
             }
 
